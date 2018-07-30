@@ -1,0 +1,65 @@
+#!/bin/bash
+cd ~/.notes
+cache(){
+    gpg --armor --batch --quiet -e -r oli@glow.li > .$1.cache
+}
+prepare(){
+    rm -f .*.cache||:
+    for f in *;do
+        (
+        ext=${f##*.}
+        if [ "$ext" = "gpg" ];then
+            data=$(gpg -dq $f)
+            filenamewithoutgpg=${f:0:-4}
+            ext=${filenamewithoutgpg##*.}
+        else
+            data=$(<$f)
+        fi
+        (
+        case "$ext" in
+            "md")
+                export data
+                # Use script to force msee to draw colors
+                script --quiet /dev/null  --return -c 'echo $data|msee'
+                ;;
+            *)
+                echo "$data"
+                ;;
+        esac
+        )|cache $f
+        ) &
+    done
+    wait
+}
+edit(){
+    nvim *
+    (
+    prepare
+    git add * >/dev/null
+    git commit -m "Update on $(date)" >/dev/null
+    git push
+    )&
+}
+
+show(){
+    output=""
+    for f in *;do
+        if [ ! -f ".$f.cache" ];then
+            prepare
+            break
+        fi
+    done
+    for f in *;do
+        output+=`gpg --batch --quiet -d .$f.cache`
+    done
+    echo "$output"
+}
+# unlocking gpg, because vim-gpg has problems with input
+echo "BEAR"|gpg --quiet -e -r oli@glow.li 2>/dev/null|gpg -d  >/dev/null 2>&1
+
+if [ "$(basename $0)" == "S" ]; then :
+    edit
+else
+    show
+fi
+
