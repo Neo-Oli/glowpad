@@ -37,7 +37,7 @@ edit(){
     prepare
     git add * >/dev/null
     git commit -m "Update on $(date)" >/dev/null
-    git push >/dev/null
+    git push >/dev/null 2>&1
     )&
 }
 
