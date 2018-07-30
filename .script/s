@@ -20,7 +20,7 @@ prepare(){
             "md")
                 export data
                 # Use script to force msee to draw colors
-                script --quiet /dev/null  --return -c 'echo $data|msee'
+                script -q /dev/null -c 'echo $data|msee'
                 ;;
             *)
                 echo "$data"
