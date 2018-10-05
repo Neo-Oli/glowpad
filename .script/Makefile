@@ -6,6 +6,7 @@ install: s
 		s > $(PREFIX)/bin/s
 		chmod +x $(PREFIX)/bin/s
 		ln -sf $(PREFIX)/bin/s $(PREFIX)/bin/S
+		ln -sf .script/.gitignore ../.gitignore
 
 uninstall:
 	rm -f $(PREFIX)/bin/s
