@@ -35,9 +35,9 @@ edit(){
     nvim *
     (
     prepare
-    git add * >/dev/null
-    git commit -m "Update on $(date)" >/dev/null
-    git push >/dev/null 2>&1
+    git add * >> .log
+    git commit -m "Update on $(date)" > .log
+    git push >> .log 2>&1
     )&
 }
 
