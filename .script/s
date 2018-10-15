@@ -1,10 +1,11 @@
 #!/bin/bash
 cd @FOLDER@
 cache(){
-    gpg --armor --batch --quiet -e -r oli@glow.li > .$1.cache
+    gpg --armor --batch --quiet -e -r oli@glow.li > ".cache/$1"
 }
 prepare(){
-    rm -f .*.cache||:
+    mkdir -p .cache
+    rm -f .cache/*||:
     for f in *;do
         (
         ext=${f##*.}
@@ -17,6 +18,12 @@ prepare(){
         fi
         (
         case "$ext" in
+            "pmd")
+                export data
+                data="`php -r "?>${data}"`"
+                # Use script to force msee to draw colors
+                script -q /dev/null -c 'echo $data|msee'
+                ;;
             "md")
                 export data
                 # Use script to force msee to draw colors
@@ -44,13 +51,13 @@ edit(){
 show(){
     output=""
     for f in *;do
-        if [ ! -f ".$f.cache" ];then
+        if [ ! -f ".cache/$f" ];then
             prepare
             break
         fi
     done
     for f in *;do
-        output+=`gpg --batch --quiet -d .$f.cache`
+        output+=`gpg --batch --quiet -d .cache/$f`
     done
     echo "$output"
 }
