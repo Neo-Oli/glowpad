@@ -84,7 +84,7 @@ def show():
         output=prepare()
     else:
         output=str(sh.gpg("--batch","--quiet", "-d", ".cache/output"))
-    sh.less("-RS",_out=sys.stdout,_in=output,_err=sys.stderr)
+    sh.less("-RS","--quit-if-one-screen",_out=sys.stdout,_in=output,_err=sys.stderr)
 def debug():
     os.chdir(os.path.expanduser("~/notes"))
     prepare_gpg()
