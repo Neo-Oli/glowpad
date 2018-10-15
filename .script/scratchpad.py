@@ -64,7 +64,7 @@ def prepare():
     enc=str(enc)
     with open("{}/{}".format(cachedir,"output"), 'w') as file:
         file.write(enc)
-    return output
+    return str(output)
 def edit():
     os.chdir(os.path.expanduser("~/notes"))
     prepare_gpg()
@@ -84,7 +84,7 @@ def show():
         output=prepare()
     else:
         output=str(sh.gpg("--batch","--quiet", "-d", ".cache/output"))
-    sh.less("-RS","--quit-if-one-screen",_out=sys.stdout,_in=output,_err=sys.stderr)
+    sh.less("-RS",_out=sys.stdout,_in=output,_err=sys.stderr)
 def debug():
     os.chdir(os.path.expanduser("~/notes"))
     prepare_gpg()
