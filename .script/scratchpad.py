@@ -1,5 +1,6 @@
 #!/bin/python
 import os
+import sys
 import datetime
 import sh
 import glob
@@ -17,6 +18,10 @@ def php(data):
     return data
 def python(data):
     data=sh.python(_in=data)
+    return data
+
+def bash(data):
+    data=sh.bash(_in=data)
     return data
 
 def prepare():
@@ -46,6 +51,7 @@ def prepare():
                     processors={
                         "php": lambda: php(code),
                         "python": lambda: python(code),
+                        "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
                     data="{}\nrun {}:\n```{}\n{}\n```\nResult:\n```\n{}\n```".format(data,processor,processor,code,result)
@@ -78,7 +84,7 @@ def show():
         output=prepare()
     else:
         output=str(sh.gpg("--batch","--quiet", "-d", ".cache/output"))
-    print(output)
+    sh.less("-RS",_out=sys.stdout,_in=output,_err=sys.stderr)
 def debug():
     os.chdir(os.path.expanduser("~/notes"))
     prepare_gpg()
