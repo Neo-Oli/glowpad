@@ -38,7 +38,10 @@ setup(
         # platforms='Linux x86, x86-64',
         install_requires=requires,
         entry_points={
-            'console_scripts': ['s=scratchpad:show'],
-            'console_scripts': ['S=scratchpad:edit']
+            'console_scripts': [
+                's=scratchpad:show',
+                'S=scratchpad:edit',
+                'sd=scratchpad:debug'
+                ]
             },
         )
