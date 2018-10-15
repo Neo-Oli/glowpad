@@ -24,7 +24,7 @@ def bash(data):
     data=sh.bash(_in=data)
     return data
 
-def prepare():
+def prepare(bare=False):
     output=""
     cachedir=".cache"
     if not os.path.exists(cachedir):
@@ -54,11 +54,13 @@ def prepare():
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
-                    data="{}\nrun {}:\n```{}\n{}\n```\nResult:\n```\n{}\n```".format(data,processor,processor,code,result)
+                    data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}\n```".format(data,processor,processor,code,result)
                 else:
                     data="{}\n```\n{}\n```".format(data,val)
 
         output="{}\n{}".format(output,data)
+    if bare:
+        return output
     output=md(output)
     enc=sh.gpg("--batch","--armor", "--quiet", "-e", "-r", "oli@glow.li",_in=output)
     enc=str(enc)
@@ -88,6 +90,9 @@ def show():
 def debug():
     os.chdir(os.path.expanduser("~/notes"))
     prepare_gpg()
+    print(prepare())
+def bare():
+    os.chdir(os.path.expanduser("~/notes"))
     print(prepare())
 def prepare_gpg():
     # unlocking gpg, because vim-gpg has problems with input
