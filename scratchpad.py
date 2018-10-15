@@ -93,7 +93,7 @@ def debug():
     print(prepare())
 def bare():
     os.chdir(os.path.expanduser("~/notes"))
-    print(prepare())
+    print(prepare(True))
 def prepare_gpg():
     # unlocking gpg, because vim-gpg has problems with input
     sh.gpg(sh.gpg("--quiet", "--armor", "-e", "-r", "oli@glow.li", _in="BEAR"), "-d")
