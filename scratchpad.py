@@ -54,7 +54,7 @@ def prepare(bare=False):
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
-                    data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}\n```".format(data,processor,processor,code,result)
+                    data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}```".format(data,processor,processor,code,result)
                 else:
                     data="{}\n```\n{}\n```".format(data,val)
 
