@@ -39,9 +39,9 @@ setup(
         install_requires=requires,
         entry_points={
             'console_scripts': [
-                's=scratchpad:show',
-                'S=scratchpad:edit',
-                'sb=scratchpad:bare'
+                'S=scratchpad:rebuild',
+                's=scratchpad:edit',
+                'se=scratchpad:show'
                 ]
             },
         )

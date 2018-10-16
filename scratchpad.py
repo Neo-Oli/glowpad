@@ -34,12 +34,12 @@ def bash(data):
     data=sh.bash(_in=data)
     return data
 
-def build(f,bare=False):
+def build(f):
     cache="{}/{}".format(cachedir,f)
-    if not os.path.exists(cache) or os.path.getmtime(f) > os.path.getmtime(cache) or bare:
-        with open(f, 'rb') as file:
-            data=file.read()
-        data=gpg(data)
+    with open(f, 'rb') as file:
+        data=file.read()
+    data=gpg(data)
+    if not os.path.exists(cache) or os.path.getmtime(f) > os.path.getmtime(cache):
         parts=data.split("```")
         data=""
         output=""
@@ -51,6 +51,8 @@ def build(f,bare=False):
                 parts.pop(0)
                 bang=parts.pop(0)
                 bangparts=bang.split(":")
+                if bang=="Result:":
+                    continue
                 if len(bangparts) == 2 and bangparts[0] == "run":
                     processor=bangparts[1]
                     code="\n".join(parts)
@@ -60,22 +62,21 @@ def build(f,bare=False):
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
-                    data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}```".format(data,processor,processor,code,result)
+                    # data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}```".format(data,processor,processor,code,result)
+                    data="{}```\n{}\n{}```\n```\nResult:\n{}```".format(data,bang,code,result)
                 else:
-                    data="{}\n```\n{}\n```".format(data,val)
-        output="{}\n{}".format(output,data)
-        if bare:
-            return output
-        output=md(output)
+                    data="{}```\n{}\n```".format(data,val)
+        output="{}{}".format(output,data)
         enc=sh.gpg("--batch","--armor", "--quiet", "-e", "-r", "oli@glow.li",_in=output)
         enc=str(enc)
+        with open(f, 'w') as file:
+            file.write(enc)
         with open(cache, 'w') as file:
             file.write(enc)
     else:
-        output=str(sh.gpg("--batch","--quiet", "-d", cache))
+        output=data
     return str(output)
 def edit():
-    prepare_gpg()
     os.system("nvim *")
     update()
     sh.git("add", "--all")
@@ -86,7 +87,8 @@ def edit():
         pass
     sh.git("push")
 
-def update(bare=False):
+def update():
+    prepare_gpg()
     if not os.path.exists(cachedir):
         os.makedirs(cachedir)
     for f in glob.glob("{}/*".format(cachedir)):
@@ -98,9 +100,9 @@ def update(bare=False):
     files.sort()
     for f in files:
         name=f.split(".")[0]
-        output[name]=build(f,bare)
+        output[name]=build(f)
     files.pop(0)
-    buildname=options.file.split(".")[0]
+    buildname=os.path.basename(options.file).split(".")[0]
     scratchpad=output[buildname]
     old=""
     while old != scratchpad:
@@ -110,15 +112,13 @@ def update(bare=False):
             replace="[[{}]]".format(name)
             scratchpad=scratchpad.replace(replace,output[name])
     return scratchpad
-
+def rebuild():
+    update()
 def show():
     prepare_gpg()
     output=update();
-    sh.less("-RSF",_out=sys.stdout,_in=output,_err=sys.stderr)
-def bare():
-    prepare_gpg()
-    output=update(bare);
     print(output)
+    # sh.less("-RSF",_out=sys.stdout,_in=output,_err=sys.stderr)
 def prepare_gpg():
     # unlocking gpg, because vim-gpg has problems with input
     sh.gpg(sh.gpg("--quiet", "--armor", "-e", "-r", "oli@glow.li", _in="BEAR"), "-d")
