@@ -62,7 +62,7 @@ def build(f):
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
-                    output="{}```\n{}\n{}\n```\n```\nResult:\n{}```".format(output,bang,code,result)
+                    output="{}```\n{}\n{}```\n```\nResult:\n{}```".format(output,bang,code,result)
                 else:
                     output="{}```{}```".format(output,val)
         enc=sh.gpg("--batch","--armor", "--quiet", "-e", "-r", "oli@glow.li",_in=output)
@@ -71,7 +71,9 @@ def build(f):
             file.write(enc)
         with open(cache, 'w') as file:
             file.write(enc)
-    return str(output)
+        return str(output)
+    else:
+        return str(data)
 def edit():
     os.system("nvim *")
     update()
