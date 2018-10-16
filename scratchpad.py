@@ -39,13 +39,13 @@ def build(f):
     with open(f, 'rb') as file:
         data=file.read()
     data=gpg(data)
+    output=""
     if not os.path.exists(cache) or os.path.getmtime(f) > os.path.getmtime(cache):
         parts=data.split("```")
-        data=""
-        output=""
         for id, val in enumerate(parts):
             if id % 2 == 0:
-                data="{}{}".format(data,val)
+                if val!="\n":
+                    output="{}{}".format(output,val)
             else:
                 parts=val.split("\n")
                 parts.pop(0)
@@ -62,19 +62,15 @@ def build(f):
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
-                    # data="{}\n```{}\n#!/usr/bin/env {}\n{}\n```\nResult:\n```\n{}```".format(data,processor,processor,code,result)
-                    data="{}```\n{}\n{}```\n```\nResult:\n{}```".format(data,bang,code,result)
+                    output="{}```\n{}\n{}\n```\n```\nResult:\n{}```".format(output,bang,code,result)
                 else:
-                    data="{}```\n{}\n```".format(data,val)
-        output="{}{}".format(output,data)
+                    output="{}```{}```".format(output,val)
         enc=sh.gpg("--batch","--armor", "--quiet", "-e", "-r", "oli@glow.li",_in=output)
         enc=str(enc)
         with open(f, 'w') as file:
             file.write(enc)
         with open(cache, 'w') as file:
             file.write(enc)
-    else:
-        output=data
     return str(output)
 def edit():
     os.system("nvim *")
