@@ -100,7 +100,8 @@ def update(bare=False):
         name=f.split(".")[0]
         output[name]=build(f,bare)
     files.pop(0)
-    scratchpad=output[options.file]
+    buildname=options.file.split(".")[0]
+    scratchpad=output[buildname]
     old=""
     while old != scratchpad:
         old=scratchpad
