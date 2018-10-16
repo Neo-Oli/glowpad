@@ -41,7 +41,7 @@ setup(
             'console_scripts': [
                 's=scratchpad:show',
                 'S=scratchpad:edit',
-                'sd=scratchpad:debug',
+                # 'sd=scratchpad:debug',
                 'sb=scratchpad:bare'
                 ]
             },

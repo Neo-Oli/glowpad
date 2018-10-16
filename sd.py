@@ -1,4 +1,4 @@
 #!/bin/python
 import scratchpad
-scratchpad.debug()
+scratchpad.show()
 
