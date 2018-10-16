@@ -4,8 +4,16 @@ import sys
 import datetime
 import sh
 import glob
+import argparse
 os.chdir(os.path.expanduser("~/notes"))
 cachedir=".cache"
+
+parser = argparse.ArgumentParser()
+parser.add_argument('file', help='file to show', nargs='?', default="0-scratch")
+options = parser.parse_args()
+
+
+
 def gpg(data):
     data=sh.gpg("-d", _in=data)
     return data
@@ -86,23 +94,20 @@ def update(bare=False):
         if not os.path.exists(basename):
             os.remove(f)
     output={}
-    first=""
     files=glob.glob("*")
     files.sort()
     for f in files:
-        basename=f.split(".")[0]
-        if not first:
-            first=basename
-        output[basename]=build(f,bare)
+        name=f.split(".")[0]
+        output[name]=build(f,bare)
     files.pop(0)
-    scratchpad=output[first]
+    scratchpad=output[options.file]
     old=""
     while old != scratchpad:
         old=scratchpad
         for f in files:
-            basename=f.split(".")[0]
-            replace="[[{}]]".format(basename)
-            scratchpad=scratchpad.replace(replace,output[basename])
+            name=f.split(".")[0]
+            replace="[[{}]]".format(name)
+            scratchpad=scratchpad.replace(replace,output[name])
     return scratchpad
 
 def show():
