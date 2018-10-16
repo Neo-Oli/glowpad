@@ -85,10 +85,25 @@ def update(bare=False):
         basename=os.path.basename(f)
         if not os.path.exists(basename):
             os.remove(f)
-    output=""
-    for f in sorted(glob.glob("*")):
-        output+=build(f,bare)
-    return output
+    output={}
+    first=""
+    files=glob.glob("*")
+    files.sort()
+    for f in files:
+        basename=f.split(".")[0]
+        if not first:
+            first=basename
+        output[basename]=build(f,bare)
+    files.pop(0)
+    scratchpad=output[first]
+    old=""
+    while old != scratchpad:
+        old=scratchpad
+        for f in files:
+            basename=f.split(".")[0]
+            replace="[[{}]]".format(basename)
+            scratchpad=scratchpad.replace(replace,output[basename])
+    return scratchpad
 
 def show():
     prepare_gpg()
