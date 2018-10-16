@@ -75,6 +75,7 @@ def build(f):
     else:
         return str(data)
 def edit():
+    prepare_gpg()
     os.system("nvim *")
     update()
     sh.git("add", "--all")
@@ -113,7 +114,6 @@ def update():
 def rebuild():
     update()
 def show():
-    prepare_gpg()
     output=update();
     print(output)
     # sh.less("-RSF",_out=sys.stdout,_in=output,_err=sys.stderr)
