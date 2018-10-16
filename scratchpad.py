@@ -70,7 +70,7 @@ def edit():
     prepare_gpg()
     os.system("nvim *")
     update()
-    sh.git("add", glob.glob("*"))
+    sh.git("add", "--all")
     st = datetime.datetime.now()
     try:
         sh.git("commit", "-m", "Update on {}".format(st))
