@@ -76,7 +76,7 @@ def build(f):
         return str(data)
 def edit():
     prepare_gpg()
-    os.system("nvim *")
+    os.system("nvim -c 'set nolist' -c 'nnoremap + :w<CR>:!S<CR>:e<CR>' *")
     update()
     sh.git("add", "--all")
     st = datetime.datetime.now()
