@@ -26,8 +26,13 @@ def php(data):
     data="<?php {} ?>".format(data)
     data=sh.php(_in=data)
     return data
+
 def python(data):
     data=sh.python(_in=data)
+    return data
+
+def qalc(data):
+    data=sh.qalc(_in=data)
     return data
 
 def bash(data):
@@ -59,6 +64,7 @@ def build(f):
                     processors={
                         "php": lambda: php(code),
                         "python": lambda: python(code),
+                        "qalc": lambda: qalc(code),
                         "bash": lambda: bash(code),
                     }
                     result=processors[processor]()
