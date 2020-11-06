@@ -22,22 +22,23 @@ def md(data):
     data=sh.msee(_in=data)
     return data
 
-def php(data):
-    data="<?php {} ?>".format(data)
+def php(code):
+    data="<?php {} ?>".format(code)
     data=sh.php(_in=data)
-    return data
+    return code, data
 
-def python(data):
-    data=sh.python(_in=data)
-    return data
+def python(code):
+    code=sh.black("-", "-q", _in=code)
+    data=sh.python(_in=code)
+    return code, data
 
-def qalc(data):
-    data=sh.qalc(_in=data)
-    return data
+def qalc(code):
+    data=sh.qalc(_in=code)
+    return code,data
 
-def bash(data):
-    data=sh.bash(_in=data)
-    return data
+def bash(code):
+    data=sh.bash(_in=code)
+    return code,data
 
 def build(f):
     cache="{}/{}".format(cachedir,f)
@@ -67,7 +68,7 @@ def build(f):
                         "qalc": lambda: qalc(code),
                         "bash": lambda: bash(code),
                     }
-                    result=processors[processor]()
+                    code, result=processors[processor]()
                     output="{}```\n{}\n{}```\n```\nResult:\n{}```".format(output,bang,code,result)
                 else:
                     output="{}```{}```".format(output,val)
