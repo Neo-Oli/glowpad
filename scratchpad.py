@@ -9,7 +9,7 @@ os.chdir(os.path.expanduser("~/notes"))
 cachedir=".cache"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('file', help='file to show', nargs='?', default="0-scratch")
+parser.add_argument('file', help='file to show', nargs='?', default="main")
 options = parser.parse_args()
 
 
@@ -77,13 +77,13 @@ def build(f):
         with open(f, 'w') as file:
             file.write(enc)
         with open(cache, 'w') as file:
-            file.write(enc)
+            file.write("")
         return str(output)
     else:
         return str(data)
 def edit():
     prepare_gpg()
-    os.system("nvim -c 'set nolist' -c 'nnoremap + :w<CR>:!S<CR>:e<CR>' *")
+    os.system("nvim -c 'set nolist' -c 'nnoremap + :w<CR>:!S<CR>:e<CR>' main.*")
     update()
     sh.git("add", "--all")
     st = datetime.datetime.now()
@@ -102,12 +102,11 @@ def update():
         if not os.path.exists(basename):
             os.remove(f)
     output={}
-    files=glob.glob("*")
+    files=glob.glob('**/*.build*',recursive=True)
     files.sort()
     for f in files:
         name=f.split(".")[0]
         output[name]=build(f)
-    files.pop(0)
     buildname=os.path.basename(options.file).split(".")[0]
     scratchpad=output[buildname]
     old=""
