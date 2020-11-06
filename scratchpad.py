@@ -28,8 +28,11 @@ def php(code):
     return code, data
 
 def python(code):
-    code=sh.black("-", "-q", _in=code)
-    data=sh.python(_in=code)
+    try:
+        code=sh.black("-", "-q", _in=code, _err="/dev/null")
+    except:
+        pass
+    data=sh.python(_in=code,_err_to_out=True,_ok_code=[0,1])
     return code, data
 
 def qalc(code):
