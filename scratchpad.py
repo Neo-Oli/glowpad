@@ -36,6 +36,7 @@ def build():
                     "python": lambda: python(code),
                     "qalc": lambda: qalc(code),
                     "bash": lambda: bash(code),
+                    "node": lambda: node(code),
                 }
                 code, result = processors[processor]()
                 output = "{}```\n{}\n{}```\n```\nResult:\n{}```".format(
@@ -87,4 +88,10 @@ def qalc(code):
 
 def bash(code):
     data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
+
+
+def node(code):
+    os.environ["NODE_DISABLE_COLORS"] = str(1)
+    data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     return code, str(data)
