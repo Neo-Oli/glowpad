@@ -15,8 +15,8 @@ options = parser.parse_args()
 
 def php(code):
     data = "<?php {} ?>".format(code)
-    data = sh.php(_in=data)
-    return code, data
+    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
 
 
 def python(code):
@@ -24,18 +24,19 @@ def python(code):
         code = sh.black("-", "-q", _in=code, _err="/dev/null")
     except:
         pass
-    data = sh.python(_in=code, _err_to_out=True, _ok_code=[0, 1])
-    return code, data
+    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
 
 
 def qalc(code):
-    data = sh.qalc(_in=code)
-    return code, data
+    data = sh.qalc(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    data = "\n".join(str(data).split("\n")[slice(-2)])
+    return code, str(data)+"\n"
 
 
 def bash(code):
-    data = sh.bash(_in=code)
-    return code, data
+    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
 
 
 def build():
