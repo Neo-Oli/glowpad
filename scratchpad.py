@@ -7,36 +7,9 @@ import argparse
 import fileinput
 
 os.chdir(os.path.expanduser("~/notes"))
-
 parser = argparse.ArgumentParser()
 parser.add_argument("file", help="file to show", nargs="?", default="main.*")
 options = parser.parse_args()
-
-
-def php(code):
-    data = "<?php {} ?>".format(code)
-    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, str(data)
-
-
-def python(code):
-    try:
-        code = sh.black("-", "-q", _in=code, _err="/dev/null")
-    except:
-        pass
-    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, str(data)
-
-
-def qalc(code):
-    data = sh.qalc(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
-    data = "\n".join(str(data).split("\n")[slice(-2)])
-    return code, str(data)+"\n"
-
-
-def bash(code):
-    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, str(data)
 
 
 def build():
@@ -89,3 +62,29 @@ def edit():
     except sh.ErrorReturnCode:
         pass
     sh.git("push")
+
+
+def php(code):
+    data = "<?php {} ?>".format(code)
+    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
+
+
+def python(code):
+    try:
+        code = sh.black("-", "-q", _in=code, _err="/dev/null")
+    except:
+        pass
+    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
+
+
+def qalc(code):
+    data = sh.qalc(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    data = "\n".join(str(data).split("\n")[slice(-2)])
+    return code, str(data) + "\n"
+
+
+def bash(code):
+    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
