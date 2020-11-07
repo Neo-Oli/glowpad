@@ -119,7 +119,7 @@ def gcc(code):
         try:
             data = sh.sh("-c", t)
         except:
-            data = "Execution failed"
+            data = "Execution failed\n"
         os.unlink(t)
     else:
         data = gccout
