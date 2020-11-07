@@ -5,6 +5,7 @@ import datetime
 import sh
 import argparse
 import fileinput
+import tempfile
 
 os.chdir(os.path.expanduser("~/notes"))
 parser = argparse.ArgumentParser()
@@ -37,8 +38,12 @@ def build():
                     "qalc": lambda: qalc(code),
                     "bash": lambda: bash(code),
                     "node": lambda: node(code),
+                    "gcc": lambda: gcc(code),
                 }
-                code, result = processors[processor]()
+                if processor not in processors:
+                    result = "No such processor\n"
+                else:
+                    code, result = processors[processor]()
                 output = "{}```\n{}\n{}```\n```\nResult:\n{}```".format(
                     output, bang, code, result
                 )
@@ -94,4 +99,21 @@ def bash(code):
 def node(code):
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    return code, str(data)
+
+
+def gcc(code):
+    t = tempfile.mktemp()
+    sh.gcc(
+        "-x",
+        "c",
+        "-",
+        "-o",
+        t,
+        _in=code,
+        _err_to_out=True,
+        _ok_code=list(range(0, 256)),
+    )
+    data = sh.sh("-c", t)
+    os.unlink(t)
     return code, str(data)
