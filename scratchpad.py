@@ -104,16 +104,23 @@ def node(code):
 
 def gcc(code):
     t = tempfile.mktemp()
-    sh.gcc(
+    gccout = sh.gcc(
         "-x",
         "c",
         "-",
         "-o",
         t,
+        "-fno-color-diagnostics",
         _in=code,
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
-    data = sh.sh("-c", t)
-    os.unlink(t)
+    if os.path.isfile(t):
+        try:
+            data = sh.sh("-c", t)
+        except:
+            data = "Execution failed"
+        os.unlink(t)
+    else:
+        data = gccout
     return code, str(data)
