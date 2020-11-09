@@ -10,7 +10,7 @@ from zlib import adler32
 
 os.chdir(os.path.expanduser("~/notes"))
 parser = argparse.ArgumentParser()
-parser.add_argument("file", help="file to show", nargs="?", default="main.*")
+parser.add_argument("file", help="file to show", nargs="?", default="main")
 options = parser.parse_args()
 segmentor = "```"
 
@@ -94,6 +94,7 @@ def edit():
         + ':call setpos(".", pos)<CR>'
         + "' "
         + options.file
+        + "*"
     )
     sh.git("add", "--all")
     st = datetime.datetime.now()
