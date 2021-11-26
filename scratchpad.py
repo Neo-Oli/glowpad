@@ -36,7 +36,7 @@ def build():
                 continue
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts)
-                checksum = str(adler32(bytes("".join([language,code]), "utf-8")))
+                checksum = str(adler32(bytes("".join([language, code]), "utf-8")))
                 result = "NORESULT"
                 try:
                     lastresult = data[id + 2].split("\n")
@@ -80,7 +80,7 @@ def build():
                     ]
                 )
             else:
-                output.append([segmentor, val, segmentor,'\n'])
+                output.append([segmentor, val, segmentor, "\n"])
     for i in output:
         if isinstance(i, str):
             print(i, end="")
@@ -110,33 +110,35 @@ def edit():
 
 def php(code):
     data = "<?php {} ?>".format(code)
-    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
     return code, data
 
 
 def python(code):
     try:
-        newcode = sh.black("-", "-q", _in=code, _err="/dev/null", _bg=True)
+        newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
     except:
         newcode = code
-    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     return newcode, data
 
 
 def qalc(code):
-    data = sh.qalc("--color=no",_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.qalc(
+        "--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256))
+    )
     data = "\n".join(data.split("\n")[:-2])
     return code, data + "\n"
 
 
 def bash(code):
-    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     return code, data
 
 
 def node(code):
     os.environ["NODE_DISABLE_COLORS"] = str(1)
-    data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     return code, data
 
 
