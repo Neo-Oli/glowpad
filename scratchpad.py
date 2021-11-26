@@ -23,18 +23,20 @@ def build():
     data = data.split(segmentor)
     for id, val in enumerate(data):
         if id % 2 == 0:
-            if val != "\n":
-                output.append(val.lstrip("\n"))
+            if val[:1] != "\n":
+                output.append(val)
+            else:
+                output.append(val[1:])
         else:
             parts = val.split("\n")
-            parts.pop(0)
+            language = parts.pop(0)
+
             bang = parts.pop(0)
-            bangparts = bang.split(":")
             if bang.startswith("Result:"):
                 continue
-            if len(bangparts) == 2 and bangparts[0] == "run":
+            if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts)
-                checksum = str(adler32(bytes(code, "utf-8")))
+                checksum = str(adler32(bytes("".join([language,code]), "utf-8")))
                 result = "NORESULT"
                 try:
                     lastresult = data[id + 2].split("\n")
@@ -45,22 +47,23 @@ def build():
                 except IndexError:
                     pass
                 if result == "NORESULT":
-                    processor = bangparts[1]
                     processors = {
                         "php": lambda: php(code),
                         "python": lambda: python(code),
                         "qalc": lambda: qalc(code),
                         "bash": lambda: bash(code),
                         "node": lambda: node(code),
-                        "gcc": lambda: gcc(code),
+                        "javascript": lambda: node(code),
+                        "c": lambda: gcc(code),
                     }
-                    if processor not in processors:
+                    if language not in processors:
                         result = "No such processor\n"
                     else:
-                        code, result = processors[processor]()
+                        code, result = processors[language]()
                 output.append(
                     [
                         segmentor,
+                        language,
                         "\n",
                         bang,
                         "\n",
@@ -77,7 +80,7 @@ def build():
                     ]
                 )
             else:
-                output.append([separator, val, separator])
+                output.append([segmentor, val, segmentor,'\n'])
     for i in output:
         if isinstance(i, str):
             print(i, end="")
@@ -121,7 +124,7 @@ def python(code):
 
 
 def qalc(code):
-    data = sh.qalc(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
+    data = sh.qalc("--color=no",_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
     data = "\n".join(data.split("\n")[:-2])
     return code, data + "\n"
 
