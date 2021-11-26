@@ -116,7 +116,7 @@ def php(code):
 
 def python(code):
     try:
-        newcode = sh.black("-", "-q", _in=code, _err="/dev/null", bg=True)
+        newcode = sh.black("-", "-q", _in=code, _err="/dev/null", _bg=True)
     except:
         newcode = code
     data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)), _bg=True)
