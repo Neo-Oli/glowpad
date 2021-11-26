@@ -132,8 +132,19 @@ def qalc(code):
 
 
 def bash(code):
+    try:
+        newcode = sh.npx(
+            "-y",
+            "--package=prettier-plugin-sh",
+            "prettier",
+            "--stdin-filepath=foo.sh",
+            _in=code,
+            _err="/dev/null",
+        )
+    except:
+        newcode = code
     data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, data
+    return newcode, data
 
 
 def node(code):
