@@ -39,7 +39,8 @@ setup(
     # include_package_data=True,
     # license='',
     # platforms='Linux x86, x86-64',
-    install_requires=requires,
+     data_files=[('share/scratchpad-data', ['package.json', 'yarn.lock',".prettierrc.json"]),]
+,    install_requires=requires,
     entry_points={
         "console_scripts": [
             "scratchpad_processor=scratchpad:build",

@@ -133,13 +133,12 @@ def qalc(code):
 
 def bash(code):
     try:
-        newcode = sh.npx(
-            "-y",
-            "--package=prettier-plugin-sh",
+        newcode = sh.yarn("-s",
             "prettier",
             "--stdin-filepath=foo.sh",
             _in=code,
             _err="/dev/null",
+            _cwd=os.path.join(sys.prefix,"share/scratchpad-data"),
         )
     except:
         newcode = code
@@ -148,9 +147,19 @@ def bash(code):
 
 
 def node(code):
+    try:
+        newcode = sh.yarn("-s",
+            "prettier",
+            "--stdin-filepath=foo.js",
+            _in=code,
+            _err="/dev/null",
+            _cwd=os.path.join(sys.prefix,"share/scratchpad-data"),
+        )
+    except:
+        newcode = code
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, data
+    return newcode, data
 
 
 def gcc(code):
