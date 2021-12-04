@@ -15,6 +15,25 @@ options = parser.parse_args()
 segmentor = "```"
 
 
+def hash(language, code, result):
+    invalidator = 1  # increase this by one to invalidate all hashes
+    return str(
+        adler32(
+            bytes(
+                "".join(
+                    [
+                        str(invalidator),
+                        str(language),
+                        str(code),
+                        str(result),
+                    ]
+                ),
+                "utf-8",
+            )
+        )
+    )
+
+
 def build():
     output = []
     data = ""
@@ -36,14 +55,14 @@ def build():
                 continue
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts)
-                checksum = str(adler32(bytes("".join([language, code]), "utf-8")))
                 result = "NORESULT"
                 try:
                     lastresult = data[id + 2].split("\n")
                     if lastresult[1].startswith("Result:"):
                         lastchecksum = lastresult[1].split(":")[1]
-                        if lastchecksum == checksum:
-                            result = "\n".join(lastresult[2:])
+                        lastresultstr = "\n".join(lastresult[2:])
+                        if lastchecksum == hash(language, code, lastresultstr):
+                            result = lastresultstr
                 except IndexError:
                     pass
                 if result == "NORESULT":
@@ -72,7 +91,7 @@ def build():
                         "\n",
                         segmentor,
                         "\n",
-                        "Result:{}".format(checksum),
+                        "Result:{}".format(hash(language, code, result)),
                         "\n",
                         result,
                         segmentor,
@@ -133,12 +152,13 @@ def qalc(code):
 
 def bash(code):
     try:
-        newcode = sh.yarn("-s",
+        newcode = sh.yarn(
+            "-s",
             "prettier",
             "--stdin-filepath=foo.sh",
             _in=code,
             _err="/dev/null",
-            _cwd=os.path.join(sys.prefix,"share/scratchpad-data"),
+            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
         )
     except:
         newcode = code
@@ -148,12 +168,13 @@ def bash(code):
 
 def node(code):
     try:
-        newcode = sh.yarn("-s",
+        newcode = sh.yarn(
+            "-s",
             "prettier",
             "--stdin-filepath=foo.js",
             _in=code,
             _err="/dev/null",
-            _cwd=os.path.join(sys.prefix,"share/scratchpad-data"),
+            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
         )
     except:
         newcode = code
