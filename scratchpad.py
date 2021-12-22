@@ -139,6 +139,8 @@ def python(code):
     except:
         newcode = code
     data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    if data.exit_code:
+        newcode = code
     return newcode, data
 
 
@@ -163,6 +165,8 @@ def bash(code):
     except:
         newcode = code
     data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    if data.exit_code:
+        newcode = code
     return newcode, data
 
 
@@ -180,6 +184,8 @@ def node(code):
         newcode = code
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    if data.exit_code:
+        newcode = code
     return newcode, data
 
 
