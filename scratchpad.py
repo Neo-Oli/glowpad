@@ -150,7 +150,7 @@ def hash(language, args, code, result):
     hashargs = ""
     for key in ["name", "always", "echo"]:
         if key in args:
-            hashargs += args[key]
+            hashargs += str(args[key])
     for name in results:
         if "{}{}".format(envPrefix, name) in code:
             pastresults.append(results[name])
@@ -293,7 +293,7 @@ def build():
                         "\n",
                     ]
                 )
-                if echo or exitcode:
+                if echo or ("exitcode" in args and args["exitcode"]):
                     output.append(
                         [
                             segmentor,
@@ -319,10 +319,10 @@ def build():
     out = ""
     for i in output:
         if isinstance(i, str):
-            out += i
+            out += str(i)
         else:
             for j in i:
-                out += j
+                out += str(j)
     try:
         newout = sh.yarn(
             "-s",
