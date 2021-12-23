@@ -316,12 +316,26 @@ def build():
                         "\n",
                     ]
                 )
+    out = ""
     for i in output:
         if isinstance(i, str):
-            print(i, end="")
+            out += i
         else:
             for j in i:
-                print(j, end="")
+                out += j
+    try:
+        newout = sh.yarn(
+            "-s",
+            "prettier",
+            "--stdin-filepath=foo.md",
+            _in=out,
+            _err="/dev/null",
+            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+        )
+    except:
+        newout = out
+
+    print(newout, end="")
 
 
 def edit():
