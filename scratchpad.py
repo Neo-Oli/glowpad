@@ -323,7 +323,7 @@ def build():
         else:
             for j in i:
                 out += str(j)
-    print(out)
+    print(out, end="")
     # try:
     # newout = sh.yarn(
     # "-s",
