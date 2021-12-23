@@ -47,7 +47,7 @@ The following processors are available:
 
 When executing a block for the first time a JSON formated string of arguments will be generated and inserted after the `#run` directive.
 Example:
-    #run:{{"name":7,"hash":"590545889"}}
+    #run:{{"name":"B7","hash":"590545889"}}
 
 By default it will contain only name and hash but there are others. Some of them are generated when certain conditions are met. Some of them you can set yourself.
 
@@ -175,6 +175,10 @@ def createJson(args):
     return json.dumps(args, separators=(",", ":"))
 
 
+def name(num):
+    return "B{}".format(str(num))
+
+
 def build():
     output = []
     data = "\n"
@@ -204,9 +208,10 @@ def build():
                 if not isinstance(args, dict):
                     args = {}
                 if not "name" in args or not args["name"]:
-                    args["name"] = 1
-                    while args["name"] in results:
-                        args["name"] += 1
+                    i = 1
+                    while name(i) in results:
+                        i += 1
+                    args["name"] = name(i)
                 if "echo" in args:
                     echo = args["echo"]
                 else:
