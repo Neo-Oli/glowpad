@@ -102,6 +102,10 @@ In order to cut down on execution time a hashing system is used. If the code has
 
 Result of the code compressed using zlib.compress and base64.a85encode. Only used when `echo` is set to `false`.
 
+#### exitcode
+
+Show exit code if it isn't 0.
+
 #### echo
 
 Default: true
@@ -143,9 +147,10 @@ results = {}
 def hash(language, args, code, result):
     invalidator = 1  # increase this by one to invalidate all hashes
     pastresults = []
-    for key in ["hash", "result"]:
+    hashargs = ""
+    for key in ["name", "always", "echo"]:
         if key in args:
-            del args[key]
+            hashargs += args[key]
     for name in results:
         if "{}{}".format(envPrefix, name) in code:
             pastresults.append(results[name])
@@ -154,7 +159,7 @@ def hash(language, args, code, result):
         [
             str(invalidator),
             str(language),
-            str(args),
+            str(hashargs),
             str(code),
             str(result),
             "".join(pastresults),
@@ -256,8 +261,11 @@ def build():
                     if language not in processors:
                         result = "No such processor\n"
                     else:
-                        code, result = processors[language]()
+                        code, result, exitcode = processors[language]()
+                        args["exitcode"] = exitcode
                 args["hash"] = hash(language, args, code, result)
+                if "exitcode" in args and not args["exitcode"]:
+                    del args["exitcode"]
                 resultString = "".join(
                     [
                         "\n",
@@ -285,7 +293,7 @@ def build():
                         "\n",
                     ]
                 )
-                if echo:
+                if echo or exitcode:
                     output.append(
                         [
                             segmentor,
@@ -338,7 +346,7 @@ def edit():
 def php(code):
     data = "<?php {} ?>".format(code)
     data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
-    return code, data
+    return code, data, data.exit_code
 
 
 def python(code):
@@ -349,15 +357,14 @@ def python(code):
     data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     if data.exit_code:
         newcode = code
-    return newcode, data
+    return newcode, data, data.exit_code
 
 
 def qalc(code):
     data = sh.qalc(
         "--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256))
     )
-    data = "\n".join(data.split("\n")[:-2])
-    return code, data + "\n"
+    return code, "\n".join(data.split("\n")[:-2]) + "\n", data.exit_code
 
 
 def bash(code):
@@ -375,7 +382,7 @@ def bash(code):
     data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     if data.exit_code:
         newcode = code
-    return newcode, data
+    return newcode, data, data.exit_code
 
 
 def node(code):
@@ -394,7 +401,7 @@ def node(code):
     data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     if data.exit_code:
         newcode = code
-    return newcode, data
+    return newcode, data, data.exit_code
 
 
 def gcc(code):
@@ -410,16 +417,12 @@ def gcc(code):
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
-    if os.path.isfile(t):
-        try:
-            data = sh.sh("-c", t)
-        except:
-            data = "Execution failed\n"
-        os.unlink(t)
-    else:
-        data = gccout
-    return code, data
+    if gccout.exit_code or not os.path.isfile(t):
+        return code, gccout, gccout.exit_code
+    data = sh.sh("-c", t, _ok_code=list(range(0, 256)), _err_to_out=True)
+    os.unlink(t)
+    return code, data, data.exit_code
 
 
 def help(code):
-    return code, helptext
+    return code, helptext, 0
