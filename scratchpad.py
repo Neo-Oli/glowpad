@@ -323,19 +323,20 @@ def build():
         else:
             for j in i:
                 out += str(j)
-    try:
-        newout = sh.yarn(
-            "-s",
-            "prettier",
-            "--stdin-filepath=foo.md",
-            _in=out,
-            _err="/dev/null",
-            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
-        )
-    except:
-        newout = out
+    print(out)
+    # try:
+    # newout = sh.yarn(
+    # "-s",
+    # "prettier",
+    # "--stdin-filepath=foo.md",
+    # _in=out,
+    # _err="/dev/null",
+    # _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+    # )
+    # except:
+    # newout = out
 
-    print(newout, end="")
+    # print(newout, end="")
 
 
 def edit():
