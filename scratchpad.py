@@ -106,6 +106,10 @@ Result of the code compressed using zlib.compress and base64.a85encode. Only use
 
 Show exit code if it isn't 0.
 
+#### exec_date
+
+Shows the date and time of the last execution.
+
 #### echo
 
 Default: true
@@ -261,8 +265,8 @@ def build():
                     if language not in processors:
                         result = "No such processor\n"
                     else:
-                        now = datetime.datetime.now()
-                        args["exec_date"] = now.replace(microsecond=0).isoformat()
+                        now=datetime.datetime.now()
+                        args["exec_date"]=now.replace(microsecond=0).isoformat()
                         code, result, exitcode = processors[language]()
                         args["exitcode"] = exitcode
                 args["hash"] = hash(language, args, code, result)
