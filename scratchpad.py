@@ -145,7 +145,7 @@ results = {}
 
 
 def hash(language, args, code, result):
-    invalidator = 1  # increase this by one to invalidate all hashes
+    invalidator = 2  # increase this by one to invalidate all hashes
     pastresults = []
     hashargs = ""
     for key in ["name", "always", "echo"]:
@@ -261,6 +261,8 @@ def build():
                     if language not in processors:
                         result = "No such processor\n"
                     else:
+                        now = datetime.datetime.now()
+                        args["exec_date"] = now.replace(microsecond=0).isoformat()
                         code, result, exitcode = processors[language]()
                         args["exitcode"] = exitcode
                 args["hash"] = hash(language, args, code, result)
