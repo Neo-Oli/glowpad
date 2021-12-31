@@ -122,6 +122,22 @@ Default: false
 
 If you want to always execute the block, regardless if it has changed or not you can set this to `true`.
 
+#### result_format
+
+Default: ""
+
+Format of the result block. It will add this string to the block opening
+
+Example:
+    ```bash
+    #run:{{"result_format":"json"}}
+    echo '{{"foo":"bar"}}'
+    ```
+    ```json
+    #Result:
+    {{"foo":"bar"}}
+    ```
+
 
 """.format(
     envPrefix=envPrefix
@@ -305,6 +321,7 @@ def build():
                     output.append(
                         [
                             segmentor,
+                            args["result_format"] if "result_format" in args else "",
                             resultString,
                             segmentor,
                             "\n",
