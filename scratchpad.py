@@ -321,12 +321,12 @@ def build():
                         "\n",
                         code,
                         segmentor,
-                            "\n" if echo else ""
                     ]
                 )
                 if echo or ("exitcode" in args and args["exitcode"]):
                     output.append(
                         [
+                            "\n",
                             resultTitle,
                             "\n",
                             segmentor,
