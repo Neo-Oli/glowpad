@@ -321,7 +321,7 @@ def build():
                         "\n",
                         code,
                         segmentor,
-                        "\n",
+                            "\n" if echo else ""
                     ]
                 )
                 if echo or ("exitcode" in args and args["exitcode"]):
@@ -333,7 +333,6 @@ def build():
                             args["result_format"] if "result_format" in args else "",
                             resultString,
                             segmentor,
-                            "\n" if id + 1 in data else "",
                         ]
                     )
 
@@ -347,7 +346,6 @@ def build():
                         val,
                         "\n",
                         segmentor,
-                        "\n" if id + 1 in data else "",
                     ]
                 )
     out = ""
