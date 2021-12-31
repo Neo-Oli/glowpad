@@ -265,15 +265,15 @@ def build():
                     if language not in processors:
                         result = "No such processor\n"
                     else:
-                        now=datetime.datetime.now()
-                        args["exec_date"]=now.replace(microsecond=0).isoformat()
+                        now = datetime.datetime.now()
+                        args["exec_date"] = now.replace(microsecond=0).isoformat()
                         code, result, exitcode = processors[language]()
                         args["exitcode"] = exitcode
                 args["hash"] = hash(language, args, code, result)
                 if "exitcode" in args and not args["exitcode"]:
                     del args["exitcode"]
                 if "result" in args and echo:
-                        del args["result"]
+                    del args["result"]
                 resultString = "".join(
                     [
                         "\n",
