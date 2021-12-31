@@ -1,5 +1,6 @@
 #!/bin/python
 envPrefix = "scratchpad_"
+resultTitle = "Result:"
 helptext = """
 Welcome to your new scratchpad!
 
@@ -18,8 +19,8 @@ Will turn into:
     # run:{{"name":1,"hash":"2474772752"}}
     print(1)
     ```
+    {resultTitle}
     ```
-    #Result:
     1
     ```
 ## Processors:
@@ -77,8 +78,8 @@ Will turn into:
     #run:{{"name":"firstBlock","hash":"1167001081"}}
     print(1)
     ```
+    {resultTitle}
     ```
-    #Result:
     1
     ```
 
@@ -89,7 +90,7 @@ Will turn into:
     print(os.environ["{envPrefix}firstBlock"])
     ```
     ```
-    Result:
+    {resultTitle}
     1
 
     ```
@@ -114,7 +115,7 @@ Shows the date and time of the last execution.
 
 Default: true
 
-If set to false, it will not generate a `#Result` block, but it will safe the result into the `result` argument (compressed). This is useful if you want to get the output in another block but don't want to see the result here.
+If set to false, it will not generate a `Result` block, but it will safe the result into the `result` argument (compressed). This is useful if you want to get the output in another block but don't want to see the result here.
 
 #### always
 
@@ -133,14 +134,14 @@ Example:
     #run:{{"result_format":"json"}}
     echo '{{"foo":"bar"}}'
     ```
+    {resultTitle}
     ```json
-    #Result:
     {{"foo":"bar"}}
     ```
 
 
 """.format(
-    envPrefix=envPrefix
+    envPrefix=envPrefix, resultTitle=resultTitle
 )
 
 import os
@@ -170,7 +171,7 @@ def hash(language, args, code, result):
     hashargs = ""
     for key in ["name", "always", "echo"]:
         if key in args:
-            hashargs += str(args[key])
+            hashargs += key + str(args[key])
     for name in results:
         if "{}{}".format(envPrefix, name) in code:
             pastresults.append(results[name])
@@ -180,7 +181,9 @@ def hash(language, args, code, result):
             str(invalidator),
             str(language),
             str(hashargs),
+            "code",
             str(code),
+            "result",
             str(result),
             "".join(pastresults),
         ]
@@ -210,12 +213,18 @@ def build():
     for line in fileinput.input():
         data += line
     data = data.split("\n" + segmentor)
+    data[0] = data[0][1:]
+    nextBlockIsResult = False
     for id, val in enumerate(data):
-        if id % 2 == 0:
-            if val[:1] != "\n":
-                output.append(val)
-            else:
-                output.append(val[1:])
+        if nextBlockIsResult:
+            nextBlockIsResult = False
+            continue
+        if val.strip() == resultTitle:
+            nextBlockIsResult = True
+        elif val == "":
+            continue
+        elif id % 2 == 0:
+            output.append(val)
         else:
             parts = val.split("\n")
             language = parts.pop(0)
@@ -246,23 +255,23 @@ def build():
                 else:
                     always = False
                 try:
+                    lastresult = ""
                     if not "result" in args:
-                        lastresult = data[id + 2] + "\n"
+                        if data[id + 1].strip() == resultTitle:
+                            lastresult = data[id + 2] + "\n"
                     else:
                         lastresult = zlib.decompress(a85decode(args["result"])).decode()
                     lastresult = lastresult.split("\n")
-                    if lastresult[1].startswith("#Result:"):
-                        try:
-                            lastchecksum = args["hash"]
-                        except KeyError:
-                            lastchecksum = ""
-                        lastresultstr = "\n".join(lastresult[2:])
-                        # lastresultstr = "{}\n".format(lastresultstr)
-                        if (
-                            lastchecksum == hash(language, args, code, lastresultstr)
-                            and not always
-                        ):
-                            result = lastresultstr
+                    try:
+                        lastchecksum = args["hash"]
+                    except KeyError:
+                        lastchecksum = ""
+                    lastresultstr = "\n".join(lastresult[1:])
+                    if (
+                        lastchecksum == hash(language, args, code, lastresultstr)
+                        and not always
+                    ):
+                        result = lastresultstr
                 except IndexError:
                     result = "NORESULT"
                 except zlib.error:
@@ -293,8 +302,6 @@ def build():
                 resultString = "".join(
                     [
                         "\n",
-                        "#Result:",
-                        "\n",
                         str(result),
                     ]
                 )
@@ -320,11 +327,13 @@ def build():
                 if echo or ("exitcode" in args and args["exitcode"]):
                     output.append(
                         [
+                            resultTitle,
+                            "\n",
                             segmentor,
                             args["result_format"] if "result_format" in args else "",
                             resultString,
                             segmentor,
-                            "\n",
+                            "\n" if id + 1 in data else "",
                         ]
                     )
 
@@ -338,7 +347,7 @@ def build():
                         val,
                         "\n",
                         segmentor,
-                        "\n",
+                        "\n" if id + 1 in data else "",
                     ]
                 )
     out = ""
