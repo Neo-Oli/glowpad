@@ -272,6 +272,8 @@ def build():
                 args["hash"] = hash(language, args, code, result)
                 if "exitcode" in args and not args["exitcode"]:
                     del args["exitcode"]
+                if "result" in args and echo:
+                        del args["result"]
                 resultString = "".join(
                     [
                         "\n",
