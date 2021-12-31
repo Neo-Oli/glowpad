@@ -19,7 +19,7 @@ Will turn into:
     print(1)
     ```
     ```
-    Result:
+    #Result:
     1
     ```
 ## Processors:
@@ -78,7 +78,7 @@ Will turn into:
     print(1)
     ```
     ```
-    Result:
+    #Result:
     1
     ```
 
@@ -114,7 +114,7 @@ Shows the date and time of the last execution.
 
 Default: true
 
-If set to false, it will not generate a `Result` block, but it will safe the result into the `result` argument (compressed). This is useful if you want to get the output in another block but don't want to see the result here.
+If set to false, it will not generate a `#Result` block, but it will safe the result into the `result` argument (compressed). This is useful if you want to get the output in another block but don't want to see the result here.
 
 #### always
 
@@ -205,7 +205,7 @@ def build():
             language = parts.pop(0)
             firstline = parts.pop(0)
             bang = firstline.split(":")[0]
-            if bang == "Result":
+            if bang == "#Result":
                 continue
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts) + "\n"
@@ -235,7 +235,7 @@ def build():
                     else:
                         lastresult = zlib.decompress(a85decode(args["result"])).decode()
                     lastresult = lastresult.split("\n")
-                    if lastresult[1].startswith("Result:"):
+                    if lastresult[1].startswith("#Result:"):
                         try:
                             lastchecksum = args["hash"]
                         except KeyError:
@@ -277,7 +277,7 @@ def build():
                 resultString = "".join(
                     [
                         "\n",
-                        "Result:",
+                        "#Result:",
                         "\n",
                         str(result),
                     ]
