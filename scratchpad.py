@@ -175,7 +175,7 @@ results = {}
 
 
 def hash(language, args, code, result):
-    invalidator = 2  # increase this by one to invalidate all hashes
+    invalidator = 3  # increase this by one to invalidate all hashes
     pastresults = []
     hashargs = ""
     for key in ["name", "always", "echo", "mode"]:
@@ -217,7 +217,7 @@ def name(num):
 
 
 def build():
-    output = []
+    output = ""
     data = "\n"
     for line in fileinput.input():
         data += line
@@ -230,17 +230,17 @@ def build():
             continue
         if val.strip() == resultTitle:
             nextBlockIsResult = True
-        elif val == "":
-            continue
         elif id % 2 == 0:
-            output.append(val)
+            output += val
         else:
             parts = val.split("\n")
-            language = parts.pop(0)
-            firstline = parts.pop(0)
+            try:
+                language = parts.pop(0)
+                firstline = parts.pop(0)
+            except IndexError:
+                language = ""
+                firstline = ""
             bang = firstline.split(":")[0]
-            if bang == "#Result":
-                continue
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts) + "\n"
                 result = "NORESULT"
@@ -290,15 +290,16 @@ def build():
                     if "mode" in args:
                         mode = args["mode"]
                     if mode == "eval":
+                        lineNumPrepend = output.count("\n") + 3
                         processors = {
-                            "php": lambda: php(code),
-                            "python": lambda: python(code),
-                            "qalc": lambda: qalc(code),
-                            "bash": lambda: bash(code),
-                            "node": lambda: node(code),
-                            "javascript": lambda: node(code),
-                            "help": lambda: help(code),
-                            "c": lambda: gcc(code),
+                            "php": lambda: php(code, lineNumPrepend),
+                            "python": lambda: python(code, lineNumPrepend),
+                            "qalc": lambda: qalc(code, lineNumPrepend),
+                            "bash": lambda: bash(code, lineNumPrepend),
+                            "node": lambda: node(code, lineNumPrepend),
+                            "javascript": lambda: node(code, lineNumPrepend),
+                            "help": lambda: help(code, lineNumPrepend),
+                            "c": lambda: gcc(code, lineNumPrepend),
                         }
                         if language not in processors:
                             result = "No such processor\n"
@@ -326,53 +327,33 @@ def build():
                     args["result"] = a85encode(
                         zlib.compress("".join(resultString).encode())
                     ).decode()
-                output.append(
-                    [
-                        "\n",
-                        segmentor,
-                        language,
-                        "\n",
-                        bang,
-                        ":",
-                        createJson(args),
-                        "\n",
-                        code,
-                        segmentor,
-                    ]
+                output += (
+                    "\n"
+                    + segmentor
+                    + language
+                    + "\n"
+                    + bang
+                    + ":"
+                    + createJson(args)
+                    + "\n"
+                    + str(code)
+                    + segmentor
                 )
                 if echo or ("exitcode" in args and args["exitcode"]):
-                    output.append(
-                        [
-                            "\n",
-                            resultTitle,
-                            "\n",
-                            segmentor,
-                            args["result_format"] if "result_format" in args else "",
-                            resultString,
-                            segmentor,
-                        ]
+                    output += (
+                        "\n"
+                        + resultTitle
+                        + "\n"
+                        + segmentor
+                        + (args["result_format"] if "result_format" in args else "")
+                        + resultString
+                        + segmentor
                     )
-
                 results[args["name"]] = args["hash"]
                 os.environ["{}{}".format(envPrefix, args["name"])] = str(result)
             else:
-                output.append(
-                    [
-                        "\n",
-                        segmentor,
-                        val,
-                        "\n",
-                        segmentor,
-                    ]
-                )
-    out = ""
-    for i in output:
-        if isinstance(i, str):
-            out += str(i)
-        else:
-            for j in i:
-                out += str(j)
-    print(out, end="")
+                output += "\n" + segmentor + val + "\n" + segmentor
+    print(output, end="")
     # try:
     # newout = sh.yarn(
     # "-s",
@@ -407,31 +388,43 @@ def edit():
     sh.git("push")
 
 
-def php(code):
-    data = "<?php {} ?>".format(code)
-    data = sh.php(_in=data, _err_to_out=True, _ok_code=list(range(0, 256)))
+def prependLineNumbers(code, lineNumPrepend):
+    return "\n" * lineNumPrepend + str(code)
+
+
+def php(code, lineNumPrepend):
+    newcode = "<?php {} ?>".format(code)
+    data = sh.php(
+        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _err_to_out=True,
+        _ok_code=list(range(0, 256)),
+    )
     return code, data, data.exit_code
 
 
-def python(code):
+def python(code, lineNumPrepend):
     try:
         newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
     except:
         newcode = code
-    data = sh.python(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    data = sh.python(
+        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _err_to_out=True,
+        _ok_code=list(range(0, 256)),
+    )
     if data.exit_code:
         newcode = code
     return newcode, data, data.exit_code
 
 
-def qalc(code):
+def qalc(code, lineNumPrepend):
     data = sh.qalc(
         "--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256))
     )
     return code, "\n".join(data.split("\n")[:-2]) + "\n", data.exit_code
 
 
-def bash(code):
+def bash(code, lineNumPrepend):
     try:
         newcode = sh.yarn(
             "-s",
@@ -443,13 +436,17 @@ def bash(code):
         )
     except:
         newcode = code
-    data = sh.bash(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    data = sh.bash(
+        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _err_to_out=True,
+        _ok_code=list(range(0, 256)),
+    )
     if data.exit_code:
         newcode = code
     return newcode, data, data.exit_code
 
 
-def node(code):
+def node(code, lineNumPrepend):
     try:
         newcode = sh.yarn(
             "-s",
@@ -462,13 +459,17 @@ def node(code):
     except:
         newcode = code
     os.environ["NODE_DISABLE_COLORS"] = str(1)
-    data = sh.node(_in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
+    data = sh.node(
+        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _err_to_out=True,
+        _ok_code=list(range(0, 256)),
+    )
     if data.exit_code:
         newcode = code
     return newcode, data, data.exit_code
 
 
-def gcc(code):
+def gcc(code, lineNumPrepend):
     t = tempfile.mktemp()
     gccout = sh.gcc(
         "-x",
@@ -477,7 +478,7 @@ def gcc(code):
         "-o",
         t,
         "-fno-color-diagnostics",
-        _in=code,
+        _in=prependLineNumbers(code, lineNumPrepend),
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
@@ -488,5 +489,5 @@ def gcc(code):
     return code, data, data.exit_code
 
 
-def help(code):
+def help(code, lineNumPrepend):
     return code, helptext, 0
