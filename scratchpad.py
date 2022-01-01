@@ -54,6 +54,15 @@ By default it will contain only name and hash but there are others. Some of them
 
 ### Argument List
 
+#### mode
+
+Default: "eval"
+
+With `mode` different behaviour can be specified.
+
+* `eval`:  (default) Code will be run with the corresponding processor
+* `print`: The code will be copied straight to result
+
 #### name
 
 This is the Name of the block. You can set this yourself, otherwise it will just count up to the first free name. With it you can get the output of a higher block inside a lower block.
@@ -169,7 +178,7 @@ def hash(language, args, code, result):
     invalidator = 2  # increase this by one to invalidate all hashes
     pastresults = []
     hashargs = ""
-    for key in ["name", "always", "echo"]:
+    for key in ["name", "always", "echo", "mode"]:
         if key in args:
             hashargs += key + str(args[key])
     for name in results:
@@ -277,23 +286,31 @@ def build():
                 except zlib.error:
                     result = "NORESULT"
                 if result == "NORESULT":
-                    processors = {
-                        "php": lambda: php(code),
-                        "python": lambda: python(code),
-                        "qalc": lambda: qalc(code),
-                        "bash": lambda: bash(code),
-                        "node": lambda: node(code),
-                        "javascript": lambda: node(code),
-                        "help": lambda: help(code),
-                        "c": lambda: gcc(code),
-                    }
-                    if language not in processors:
-                        result = "No such processor\n"
+                    mode = "eval"
+                    if "mode" in args:
+                        mode = args["mode"]
+                    if mode == "eval":
+                        processors = {
+                            "php": lambda: php(code),
+                            "python": lambda: python(code),
+                            "qalc": lambda: qalc(code),
+                            "bash": lambda: bash(code),
+                            "node": lambda: node(code),
+                            "javascript": lambda: node(code),
+                            "help": lambda: help(code),
+                            "c": lambda: gcc(code),
+                        }
+                        if language not in processors:
+                            result = "No such processor\n"
+                        else:
+                            now = datetime.datetime.now()
+                            args["exec_date"] = now.replace(microsecond=0).isoformat()
+                            code, result, exitcode = processors[language]()
+                            args["exitcode"] = exitcode
+                    elif mode == "print":
+                        result = code
                     else:
-                        now = datetime.datetime.now()
-                        args["exec_date"] = now.replace(microsecond=0).isoformat()
-                        code, result, exitcode = processors[language]()
-                        args["exitcode"] = exitcode
+                        result = "Invalid mode\n"
                 args["hash"] = hash(language, args, code, result)
                 if "exitcode" in args and not args["exitcode"]:
                     del args["exitcode"]
