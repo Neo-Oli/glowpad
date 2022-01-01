@@ -46,6 +46,7 @@ setup(
                 "package.json",
                 "yarn.lock",
                 ".prettierrc.json",
+                ".style.yapf"
             ],
         ),
     ],

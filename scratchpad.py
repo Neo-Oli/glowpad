@@ -28,7 +28,7 @@ Will turn into:
 The following processors are available:
 
 * python
-    Run python code. The code will additionally be formatted with black.
+    Run python code. The code will additionally be formatted with yapf.
 * php
     Run php code.
 * qalc
@@ -149,9 +149,7 @@ Example:
     ```
 
 
-""".format(
-    envPrefix=envPrefix, resultTitle=resultTitle
-)
+""".format(envPrefix=envPrefix, resultTitle=resultTitle)
 
 import os
 import sys
@@ -165,6 +163,7 @@ import json
 import string
 import zlib
 from base64 import a85encode, a85decode
+from yapf.yapflib.yapf_api import FormatCode
 
 os.chdir(os.path.expanduser("~/notes"))
 parser = argparse.ArgumentParser()
@@ -173,48 +172,38 @@ options = parser.parse_args()
 segmentor = "```"
 results = {}
 
-
 def hash(language, args, code, result):
     invalidator = 3  # increase this by one to invalidate all hashes
     pastresults = []
     hashargs = ""
-    for key in ["name", "always", "echo", "mode"]:
+    for key in [ "name", "always", "echo", "mode"]:
         if key in args:
             hashargs += key + str(args[key])
     for name in results:
         if "{}{}".format(envPrefix, name) in code:
             pastresults.append(results[name])
 
-    hashdata = "".join(
-        [
-            str(invalidator),
-            str(language),
-            str(hashargs),
-            "code",
-            str(code),
-            "result",
-            str(result),
-            "".join(pastresults),
-        ]
-    )
+    hashdata = "".join([
+        str(invalidator),
+        str(language),
+        str(hashargs),
+        "code",
+        str(code),
+        "result",
+        str(result),
+        "".join(pastresults),
+    ])
     # print("###{}@@@".format(hashdata))
-    return str(
-        zlib.adler32(
-            bytes(
-                hashdata,
-                "utf-8",
-            )
-        )
-    )
-
+    return str(zlib.adler32(bytes(
+        hashdata,
+        "utf-8",
+    )))
 
 def createJson(args):
     return json.dumps(args, separators=(",", ":"))
 
-
 def name(num):
     return "B{}".format(str(num))
-
 
 def build():
     output = ""
@@ -241,11 +230,11 @@ def build():
                 language = ""
                 firstline = ""
             bang = firstline.split(":")[0]
-            if language and bang in ["#run", "# run"]:
+            if language and bang in [ "#run", "# run"]:
                 code = "\n".join(parts) + "\n"
                 result = "NORESULT"
                 try:
-                    args = json.loads(firstline[firstline.find(":") + 1 :])
+                    args = json.loads(firstline[firstline.find(":") + 1:])
                 except json.decoder.JSONDecodeError:
                     args = {}
                 if not isinstance(args, dict):
@@ -276,10 +265,7 @@ def build():
                     except KeyError:
                         lastchecksum = ""
                     lastresultstr = "\n".join(lastresult[1:])
-                    if (
-                        lastchecksum == hash(language, args, code, lastresultstr)
-                        and not always
-                    ):
+                    if (lastchecksum == hash(language, args, code, lastresultstr) and not always):
                         result = lastresultstr
                 except IndexError:
                     result = "NORESULT"
@@ -317,38 +303,19 @@ def build():
                     del args["exitcode"]
                 if "result" in args and echo:
                     del args["result"]
-                resultString = "".join(
-                    [
-                        "\n",
-                        str(result),
-                    ]
-                )
+                resultString = "".join([
+                    "\n",
+                    str(result),
+                ])
                 if not echo:
-                    args["result"] = a85encode(
-                        zlib.compress("".join(resultString).encode())
-                    ).decode()
-                output += (
-                    "\n"
-                    + segmentor
-                    + language
-                    + "\n"
-                    + bang
-                    + ":"
-                    + createJson(args)
-                    + "\n"
-                    + str(code)
-                    + segmentor
-                )
+                    args["result"] = a85encode(zlib.compress(
+                        "".join(resultString).encode())).decode()
+                output += ("\n" + segmentor + language + "\n" + bang + ":" + createJson(args) +
+                           "\n" + str(code) + segmentor)
                 if echo or ("exitcode" in args and args["exitcode"]):
-                    output += (
-                        "\n"
-                        + resultTitle
-                        + "\n"
-                        + segmentor
-                        + (args["result_format"] if "result_format" in args else "")
-                        + resultString
-                        + segmentor
-                    )
+                    output += ("\n" + resultTitle + "\n" + segmentor +
+                               (args["result_format"] if "result_format" in args else "") +
+                               resultString + segmentor)
                 results[args["name"]] = args["hash"]
                 os.environ["{}{}".format(envPrefix, args["name"])] = str(result)
             else:
@@ -368,17 +335,10 @@ def build():
 
     # print(newout, end="")
 
-
 def edit():
-    os.system(
-        "nvim -c 'set nolist' -c 'nnoremap + "
-        + ':let pos=getpos(".")<CR>'
-        + ":%! scratchpad_processor<CR>"
-        + ':call setpos(".", pos)<CR>'
-        + "' "
-        + options.file
-        + "*"
-    )
+    os.system("nvim -c 'set nolist' -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
+              ":%! scratchpad_processor<CR>" + ':call setpos(".", pos)<CR>' + "' " + options.file +
+              "*")
     sh.git("add", "--all")
     st = datetime.datetime.now()
     try:
@@ -387,10 +347,8 @@ def edit():
         pass
     sh.git("push")
 
-
 def prependLineNumbers(code, lineNumPrepend):
     return "\n" * lineNumPrepend + str(code)
-
 
 def php(code, lineNumPrepend):
     newcode = "<?php {} ?>".format(code)
@@ -401,10 +359,11 @@ def php(code, lineNumPrepend):
     )
     return code, data, data.exit_code
 
-
 def python(code, lineNumPrepend):
     try:
-        newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
+        newcode, changed = FormatCode(code,
+                                      style_config=os.path.join(
+                                          sys.prefix, "share/scratchpad-data/.style.yapf"))
     except:
         newcode = code
     data = sh.python(
@@ -416,13 +375,9 @@ def python(code, lineNumPrepend):
         newcode = code
     return newcode, data, data.exit_code
 
-
 def qalc(code, lineNumPrepend):
-    data = sh.qalc(
-        "--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256))
-    )
+    data = sh.qalc("--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
     return code, "\n".join(data.split("\n")[:-2]) + "\n", data.exit_code
-
 
 def bash(code, lineNumPrepend):
     try:
@@ -444,7 +399,6 @@ def bash(code, lineNumPrepend):
     if data.exit_code:
         newcode = code
     return newcode, data, data.exit_code
-
 
 def node(code, lineNumPrepend):
     try:
@@ -468,7 +422,6 @@ def node(code, lineNumPrepend):
         newcode = code
     return newcode, data, data.exit_code
 
-
 def gcc(code, lineNumPrepend):
     t = tempfile.mktemp()
     gccout = sh.gcc(
@@ -487,7 +440,6 @@ def gcc(code, lineNumPrepend):
     data = sh.sh("-c", t, _ok_code=list(range(0, 256)), _err_to_out=True)
     os.unlink(t)
     return code, data, data.exit_code
-
 
 def help(code, lineNumPrepend):
     return code, helptext, 0
