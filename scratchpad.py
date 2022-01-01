@@ -176,7 +176,7 @@ def hash(language, args, code, result):
     invalidator = 3  # increase this by one to invalidate all hashes
     pastresults = []
     hashargs = ""
-    for key in [ "name", "always", "echo", "mode"]:
+    for key in ["name", "always", "echo", "mode"]:
         if key in args:
             hashargs += key + str(args[key])
     for name in results:
@@ -230,7 +230,7 @@ def build():
                 language = ""
                 firstline = ""
             bang = firstline.split(":")[0]
-            if language and bang in [ "#run", "# run"]:
+            if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts) + "\n"
                 result = "NORESULT"
                 try:
