@@ -195,16 +195,18 @@ def hash(language, args, code, result):
             if name in args["depends"]:
                 pastresults.append(results[name])
 
-    hashdata = "".join([
-        str(invalidator),
-        str(language),
-        str(hashargs),
-        "code",
-        str(code),
-        "result",
-        str(result),
-        "".join(pastresults),
-    ])
+    hashdata = "".join(
+        [
+            str(invalidator),
+            str(language),
+            str(hashargs),
+            "code",
+            str(code),
+            "result",
+            str(result),
+            "".join(pastresults),
+        ]
+    )
     # print("###{}@@@".format(hashdata))
     return str(zlib.adler32(bytes(
         hashdata,
@@ -290,14 +292,22 @@ def build():
                     if mode == "eval":
                         lineNumPrepend = output.count("\n") + 3
                         processors = {
-                            "php": lambda: php(code, lineNumPrepend),
-                            "python": lambda: python(code, lineNumPrepend),
-                            "qalc": lambda: qalc(code, lineNumPrepend),
-                            "bash": lambda: bash(code, lineNumPrepend),
-                            "node": lambda: node(code, lineNumPrepend),
-                            "javascript": lambda: node(code, lineNumPrepend),
-                            "help": lambda: help(code, lineNumPrepend),
-                            "c": lambda: gcc(code, lineNumPrepend),
+                            "php": lambda: php(code,
+                                               lineNumPrepend),
+                            "python": lambda: python(code,
+                                                     lineNumPrepend),
+                            "qalc": lambda: qalc(code,
+                                                 lineNumPrepend),
+                            "bash": lambda: bash(code,
+                                                 lineNumPrepend),
+                            "node": lambda: node(code,
+                                                 lineNumPrepend),
+                            "javascript": lambda: node(code,
+                                                       lineNumPrepend),
+                            "help": lambda: help(code,
+                                                 lineNumPrepend),
+                            "c": lambda: gcc(code,
+                                             lineNumPrepend),
                         }
                         if language not in processors:
                             result = "No such processor\n"
@@ -320,14 +330,18 @@ def build():
                     str(result),
                 ])
                 if not echo:
-                    args["result"] = a85encode(zlib.compress(
-                        "".join(resultString).encode())).decode()
-                output += ("\n" + segmentor + language + "\n" + bang + ":" + createJson(args) +
-                           "\n" + str(code) + segmentor)
+                    args["result"] = a85encode(zlib.compress("".join(resultString).encode())
+                                               ).decode()
+                output += (
+                    "\n" + segmentor + language + "\n" + bang + ":" + createJson(args) + "\n" +
+                    str(code) + segmentor
+                )
                 if echo or ("exitcode" in args and args["exitcode"]):
-                    output += ("\n" + resultTitle + "\n" + segmentor +
-                               (args["result_format"] if "result_format" in args else "") +
-                               resultString + segmentor)
+                    output += (
+                        "\n" + resultTitle + "\n" + segmentor +
+                        (args["result_format"] if "result_format" in args else "") + resultString +
+                        segmentor
+                    )
                 results[args["name"]] = args["hash"]
                 scratchpad[args["name"]] = resultString
             else:
@@ -348,9 +362,10 @@ def build():
     # print(newout, end="")
 
 def edit():
-    os.system("nvim -c 'set nolist' -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
-              ":%! scratchpad_processor<CR>" + ':call setpos(".", pos)<CR>' + "' " + options.file +
-              "*")
+    os.system(
+        "nvim -c 'set nolist' -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
+        ":%! scratchpad_processor<CR>" + ':call setpos(".", pos)<CR>' + "' " + options.file + "*"
+    )
     sh.git("add", "--all")
     st = datetime.datetime.now()
     try:
@@ -360,17 +375,20 @@ def edit():
     sh.git("push")
 
 def prependLineNumbers(code, lineNumPrepend):
-    return "\n" * (lineNumPrepend - 1) + str(code)
+    return "\n" * (lineNumPrepend-1) + str(code)
 
 def php(code, lineNumPrepend):
 
     runcode = "<?php $scratchpad=json_decode(base64_decode(\"{}\"), true);\n{} ?>".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
-        prependLineNumbers(code, lineNumPrepend))
+        prependLineNumbers(code,
+                           lineNumPrepend)
+    )
     data = sh.php(
         _in=runcode,
         _err_to_out=True,
-        _ok_code=list(range(0, 256)),
+        _ok_code=list(range(0,
+                            256)),
     )
     return code, str(data), data.exit_code
 
@@ -383,11 +401,14 @@ def python(code, lineNumPrepend):
         newcode = code
     runcode = "scratchpad=__import__('json').loads(__import__('base64').b64decode({}))\n{}".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")),
-        prependLineNumbers(newcode, lineNumPrepend))
+        prependLineNumbers(newcode,
+                           lineNumPrepend)
+    )
     data = sh.python(
         _in=runcode,
         _err_to_out=True,
-        _ok_code=list(range(0, 256)),
+        _ok_code=list(range(0,
+                            256)),
     )
     if data.exit_code:
         newcode = code
@@ -405,19 +426,22 @@ def bash(code, lineNumPrepend):
             "--stdin-filepath=foo.sh",
             _in=code,
             _err="/dev/null",
-            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+            _cwd=os.path.join(sys.prefix,
+                              "share/scratchpad-data"),
         )
     except:
         newcode = code
 
     runcode = "declare -A \"$(echo \"{}\" | base64 -d |jq  'to_entries | map(\"[\(.key)]=\(.value|@sh)\") | reduce .[] as $item (\"scratchpad=(\"; . + ($item) + \" \") + \")\"' -r)\"\n{}".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
-        prependLineNumbers(newcode, lineNumPrepend),
+        prependLineNumbers(newcode,
+                           lineNumPrepend),
     )
     data = sh.bash(
         _in=runcode,
         _err_to_out=True,
-        _ok_code=list(range(0, 256)),
+        _ok_code=list(range(0,
+                            256)),
     )
     if data.exit_code:
         newcode = code
@@ -431,19 +455,23 @@ def node(code, lineNumPrepend):
             "--stdin-filepath=foo.js",
             _in=code,
             _err="/dev/null",
-            _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+            _cwd=os.path.join(sys.prefix,
+                              "share/scratchpad-data"),
         )
     except:
         newcode = code
 
     runcode = "scratchpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
-        prependLineNumbers(newcode, lineNumPrepend))
+        prependLineNumbers(newcode,
+                           lineNumPrepend)
+    )
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(
         _in=runcode,
         _err_to_out=True,
-        _ok_code=list(range(0, 256)),
+        _ok_code=list(range(0,
+                            256)),
     )
     if data.exit_code:
         newcode = code
@@ -458,9 +486,11 @@ def gcc(code, lineNumPrepend):
         "-o",
         t,
         "-fno-color-diagnostics",
-        _in=prependLineNumbers(code, lineNumPrepend),
+        _in=prependLineNumbers(code,
+                               lineNumPrepend),
         _err_to_out=True,
-        _ok_code=list(range(0, 256)),
+        _ok_code=list(range(0,
+                            256)),
     )
     if gccout.exit_code or not os.path.isfile(t):
         return code, gccout, gccout.exit_code
