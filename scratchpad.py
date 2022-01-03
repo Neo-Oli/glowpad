@@ -1,5 +1,4 @@
 #!/bin/python
-envPrefix = "scratchpad_"
 resultTitle = "Result:"
 helptext = """
 Welcome to your new scratchpad!
@@ -69,7 +68,9 @@ This is the Name of the block. You can set this yourself, otherwise it will just
 
 ###### Getting the output of a previous code block:
 
-You can get the output of a previous (higher) block by reading out the environment variable {envPrefix}<NAME>.
+You can get the output of a previous (higher) block by reading out the variable scratchpad["<NAME>"].
+
+See also: depends
 
 Example:
     ```python
@@ -79,7 +80,7 @@ Example:
 
     ```python
     import os
-    print(os.environ["{envPrefix}firstBlock"])
+    print(scratchpad["firstBlock"])
     ```
 Will turn into:
 
@@ -96,13 +97,22 @@ Will turn into:
     #run:{{"name":2,"hash":"1202068730"}}
     import os
 
-    print(os.environ["{envPrefix}firstBlock"])
+    print(scratchpad["firstBlock"])
     ```
     ```
     {resultTitle}
     1
 
     ```
+
+Does not work with gcc or qalc.
+
+#### depends
+
+List of block names.
+
+The block will also run if any of the blocks in depends are updated.
+
 
 #### hash
 
@@ -149,7 +159,7 @@ Example:
     ```
 
 
-""".format(envPrefix=envPrefix, resultTitle=resultTitle)
+""".format(resultTitle=resultTitle)
 
 import os
 import sys
@@ -162,7 +172,7 @@ import random
 import json
 import string
 import zlib
-from base64 import a85encode, a85decode
+from base64 import a85encode, a85decode, b64encode
 from yapf.yapflib.yapf_api import FormatCode
 
 os.chdir(os.path.expanduser("~/notes"))
@@ -171,6 +181,7 @@ parser.add_argument("file", help="file to show", nargs="?", default="main")
 options = parser.parse_args()
 segmentor = "```"
 results = {}
+scratchpad = {}
 
 def hash(language, args, code, result):
     invalidator = 3  # increase this by one to invalidate all hashes
@@ -179,9 +190,10 @@ def hash(language, args, code, result):
     for key in ["name", "always", "echo", "mode"]:
         if key in args:
             hashargs += key + str(args[key])
-    for name in results:
-        if "{}{}".format(envPrefix, name) in code:
-            pastresults.append(results[name])
+    if "depends" in args:
+        for name in results:
+            if name in args["depends"]:
+                pastresults.append(results[name])
 
     hashdata = "".join([
         str(invalidator),
@@ -317,7 +329,7 @@ def build():
                                (args["result_format"] if "result_format" in args else "") +
                                resultString + segmentor)
                 results[args["name"]] = args["hash"]
-                os.environ["{}{}".format(envPrefix, args["name"])] = str(result)
+                scratchpad[args["name"]] = resultString
             else:
                 output += "\n" + segmentor + val + "\n" + segmentor
     print(output, end="")
@@ -348,16 +360,19 @@ def edit():
     sh.git("push")
 
 def prependLineNumbers(code, lineNumPrepend):
-    return "\n" * lineNumPrepend + str(code)
+    return "\n" * (lineNumPrepend - 1) + str(code)
 
 def php(code, lineNumPrepend):
-    newcode = "<?php {} ?>".format(code)
+
+    runcode = "<?php $scratchpad=json_decode(base64_decode(\"{}\"), true);\n{} ?>".format(
+        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+        prependLineNumbers(code, lineNumPrepend))
     data = sh.php(
-        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _in=runcode,
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
-    return code, data, data.exit_code
+    return code, str(data), data.exit_code
 
 def python(code, lineNumPrepend):
     try:
@@ -366,14 +381,17 @@ def python(code, lineNumPrepend):
                                           sys.prefix, "share/scratchpad-data/.style.yapf"))
     except:
         newcode = code
+    runcode = "scratchpad=__import__('json').loads(__import__('base64').b64decode({}))\n{}".format(
+        b64encode(json.dumps(scratchpad).encode("UTF-8")),
+        prependLineNumbers(newcode, lineNumPrepend))
     data = sh.python(
-        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _in=runcode,
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
     if data.exit_code:
         newcode = code
-    return newcode, data, data.exit_code
+    return newcode, str(data), data.exit_code
 
 def qalc(code, lineNumPrepend):
     data = sh.qalc("--color=no", _in=code, _err_to_out=True, _ok_code=list(range(0, 256)))
@@ -391,14 +409,19 @@ def bash(code, lineNumPrepend):
         )
     except:
         newcode = code
+
+    runcode = "declare -A \"$(echo \"{}\" | base64 -d |jq  'to_entries | map(\"[\(.key)]=\(.value|@sh)\") | reduce .[] as $item (\"scratchpad=(\"; . + ($item) + \" \") + \")\"' -r)\"\n{}".format(
+        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+        prependLineNumbers(newcode, lineNumPrepend),
+    )
     data = sh.bash(
-        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _in=runcode,
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
     if data.exit_code:
         newcode = code
-    return newcode, data, data.exit_code
+    return newcode, str(data), data.exit_code
 
 def node(code, lineNumPrepend):
     try:
@@ -412,15 +435,19 @@ def node(code, lineNumPrepend):
         )
     except:
         newcode = code
+
+    runcode = "scratchpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".format(
+        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+        prependLineNumbers(newcode, lineNumPrepend))
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(
-        _in=prependLineNumbers(newcode, lineNumPrepend),
+        _in=runcode,
         _err_to_out=True,
         _ok_code=list(range(0, 256)),
     )
     if data.exit_code:
         newcode = code
-    return newcode, data, data.exit_code
+    return newcode, str(data), data.exit_code
 
 def gcc(code, lineNumPrepend):
     t = tempfile.mktemp()
