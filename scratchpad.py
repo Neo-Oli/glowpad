@@ -363,7 +363,7 @@ def build():
 
 def edit():
     os.system(
-        "nvim -c 'set nolist' -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
+        "nvim -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
         ":%! scratchpad_processor<CR>" + ':call setpos(".", pos)<CR>' + "' " + options.file + "*"
     )
     sh.git("add", "--all")
