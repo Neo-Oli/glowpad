@@ -4,7 +4,6 @@ from __future__ import unicode_literals, print_function
 import sys
 import os
 
-
 try:
     from setuptools import setup
 except ImportError:
@@ -18,11 +17,9 @@ except ImportError:
     )
     sys.exit(1)
 
-
 def read_reqs(path):
     with open(path, "r") as fil:
         return list(fil.readlines())
-
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)

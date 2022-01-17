@@ -363,8 +363,8 @@ def build():
 
 def edit():
     os.system(
-        "nvim -c 'nnoremap + " + ':let pos=getpos(".")<CR>' +
-        ":%! scratchpad_processor<CR>" + ':call setpos(".", pos)<CR>' + "' " + options.file + "*"
+        "nvim -c 'nnoremap + " + ':let pos=getpos(".")<CR>' + ":%! scratchpad_processor<CR>" +
+        ':call setpos(".", pos)<CR>' + "' " + options.file + "*"
     )
     sh.git("add", "--all")
     st = datetime.datetime.now()
@@ -378,10 +378,22 @@ def prependLineNumbers(code, lineNumPrepend):
     return "\n" * (lineNumPrepend-1) + str(code)
 
 def php(code, lineNumPrepend):
+    try:
 
-    runcode = "<?php $scratchpad=json_decode(base64_decode(\"{}\"), true);\n{} ?>".format(
+        newcode = sh.yarn(
+            "-s",
+            "prettier",
+            "--stdin-filepath=foo.php",
+            _in=code,
+            _err="/dev/null",
+            _cwd=os.path.join(sys.prefix,
+                              "share/scratchpad-data"),
+        )
+    except:
+        newcode = code
+    runcode = "<?php $scratchpad=json_decode(base64_decode(\"{}\"), true);{}".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
-        prependLineNumbers(code,
+        prependLineNumbers("?>{}".format(newcode),
                            lineNumPrepend)
     )
     data = sh.php(
@@ -390,7 +402,7 @@ def php(code, lineNumPrepend):
         _ok_code=list(range(0,
                             256)),
     )
-    return code, str(data), data.exit_code
+    return newcode, str(data), data.exit_code
 
 def python(code, lineNumPrepend):
     try:

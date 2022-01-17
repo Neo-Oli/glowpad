@@ -1,7 +1,8 @@
 {
   "license": "GPL-3.0",
   "dependencies": {
-    "prettier": "^2.5.0",
-    "prettier-plugin-sh": "^0.8.1"
+    "prettier": "latest",
+    "prettier-plugin-sh": "latest",
+    "@prettier/plugin-php": "latest"
   }
 }
