@@ -39,12 +39,10 @@ setup(
     data_files=[
         (
             "share/scratchpad-data",
-            [
-                "package.json",
-                "yarn.lock",
-                ".prettierrc.json",
-                ".style.yapf"
-            ],
+            ["package.json",
+             "yarn.lock",
+             ".prettierrc.json",
+             ".style.yapf"],
         ),
     ],
     install_requires=requires,

@@ -391,10 +391,10 @@ def php(code, lineNumPrepend):
         )
     except:
         newcode = code
-    runcode = "<?php $scratchpad=json_decode(base64_decode(\"{}\"), true);{}".format(
+    runcode = '<?php $scratchpad=json_decode(base64_decode("{}"), true);{}'.format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
         prependLineNumbers("?>{}".format(newcode),
-                           lineNumPrepend)
+                           lineNumPrepend),
     )
     data = sh.php(
         _in=runcode,
@@ -406,15 +406,17 @@ def php(code, lineNumPrepend):
 
 def python(code, lineNumPrepend):
     try:
-        newcode, changed = FormatCode(code,
-                                      style_config=os.path.join(
-                                          sys.prefix, "share/scratchpad-data/.style.yapf"))
+        newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
+        newcode, changed = FormatCode(
+            str(newcode),
+            style_config=os.path.join(sys.prefix, "share/scratchpad-data/.style.yapf"),
+        )
     except:
         newcode = code
     runcode = "scratchpad=__import__('json').loads(__import__('base64').b64decode({}))\n{}".format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")),
         prependLineNumbers(newcode,
-                           lineNumPrepend)
+                           lineNumPrepend),
     )
     data = sh.python(
         _in=runcode,
@@ -444,7 +446,7 @@ def bash(code, lineNumPrepend):
     except:
         newcode = code
 
-    runcode = "declare -A \"$(echo \"{}\" | base64 -d |jq  'to_entries | map(\"[\(.key)]=\(.value|@sh)\") | reduce .[] as $item (\"scratchpad=(\"; . + ($item) + \" \") + \")\"' -r)\"\n{}".format(
+    runcode = 'declare -A "$(echo "{}" | base64 -d |jq  \'to_entries | map("[\(.key)]=\(.value|@sh)") | reduce .[] as $item ("scratchpad=("; . + ($item) + " ") + ")"\' -r)"\n{}'.format(
         b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
         prependLineNumbers(newcode,
                            lineNumPrepend),
@@ -473,10 +475,12 @@ def node(code, lineNumPrepend):
     except:
         newcode = code
 
-    runcode = "scratchpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".format(
-        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
-        prependLineNumbers(newcode,
-                           lineNumPrepend)
+    runcode = (
+        "scratchpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".format(
+            b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+            prependLineNumbers(newcode,
+                               lineNumPrepend),
+        )
     )
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     data = sh.node(
