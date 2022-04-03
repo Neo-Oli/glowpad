@@ -406,7 +406,8 @@ def php(code, lineNumPrepend):
 
 def python(code, lineNumPrepend):
     try:
-        newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
+        newcode = code
+        # newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
         newcode, changed = FormatCode(
             str(newcode),
             style_config=os.path.join(sys.prefix, "share/scratchpad-data/.style.yapf"),
