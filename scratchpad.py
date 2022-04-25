@@ -326,8 +326,9 @@ def build(lint=False):
                             result = "No such processor\n"
                         else:
                             now = datetime.datetime.now()
-                            args["exec_date"] = now.replace(microsecond=0).isoformat()
                             code, result, exitcode = processors[language]()
+                            args["runtime"] = str(datetime.datetime.now() - now)
+                            args["exec_date"] = now.replace(microsecond=0).isoformat()
                             if not lint:
                                 args["linted"] = lint
                             elif "linted" in args:
