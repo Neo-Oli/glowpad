@@ -49,6 +49,7 @@ setup(
     entry_points={
         "console_scripts": [
             "scratchpad_processor=scratchpad:build",
+            "scratchpad_processor_lint=scratchpad:build_lint",
             "s=scratchpad:edit",
         ]
     },
