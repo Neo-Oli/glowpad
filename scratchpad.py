@@ -382,8 +382,8 @@ def build(lint=False):
 def edit():
     os.system(
         f"nvim \
-                -c 'nnoremap + :let pos=getpos(\".\")<CR>:%! scratchpad_processor_lint<CR>:call setpos(\".\", pos)<CR>'\
-                -c 'nnoremap ° :let pos=getpos(\".\")<CR>:%! scratchpad_processor<CR>:call setpos(\".\", pos)<CR>'\
+                -c 'nnoremap + :let pos=getpos(\".\")<CR>:%! scratchpad_processor_lint<CR>:call setpos(\".\", pos)<CR>zo<CR>'\
+                -c 'nnoremap ° :let pos=getpos(\".\")<CR>:%! scratchpad_processor<CR>:call setpos(\".\", pos)<CR>zo<CR>'\
                 {options.file}*"
     )
     sh.git("add", "--all")
