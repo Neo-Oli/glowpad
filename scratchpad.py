@@ -66,6 +66,13 @@ With `mode` different behaviour can be specified.
 
 This is the Name of the block. You can set this yourself, otherwise it will just count up to the first free name. With it you can get the output of a higher block inside a lower block.
 
+#### frozen
+
+This boolean specifies if the code should run or not. If it is set to `False` the code will not run regardless if it has changed or not and will keep the result. Use this to make sure a result block doesn't get deleted if the code can no longer run due to some external constraints.
+
+* `true`: The code will not run again
+* `false`: The code will execute as normal
+
 ###### Getting the output of a previous code block:
 
 You can get the output of a previous (higher) block by reading out the variable scratchpad["<NAME>"].
@@ -180,6 +187,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("file", help="file to show", nargs="?", default="main")
 options = parser.parse_args()
 segmentor = "```"
+noresult = "NO RESULT\n"
 results = {}
 scratchpad = {}
 
@@ -249,7 +257,7 @@ def build(lint=False):
             bang = firstline.split(":")[0]
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts) + "\n"
-                result = "NORESULT"
+                result = noresult
                 try:
                     args = json.loads(firstline[firstline.find(":") + 1:])
                 except json.decoder.JSONDecodeError:
@@ -269,6 +277,10 @@ def build(lint=False):
                     always = args["always"]
                 else:
                     always = False
+                if "frozen" in args:
+                    frozen = args["frozen"]
+                else:
+                    frozen = False
                 try:
                     lastresult = ""
                     if not "result" in args:
@@ -282,15 +294,18 @@ def build(lint=False):
                     except KeyError:
                         lastchecksum = ""
                     lastresultstr = "\n".join(lastresult[1:])
-                    if (lastchecksum == hash(language, args, code, lastresultstr) and not always):
+                    if frozen or (lastchecksum == hash(language,
+                                                       args,
+                                                       code,
+                                                       lastresultstr) and not always):
                         result = lastresultstr
                 except IndexError:
-                    result = "NORESULT"
+                    result = noresult
                 except zlib.error:
-                    result = "NORESULT"
-                if "linted" in args and not args["linted"] and lint:
-                    result = "NORESULT"
-                if result == "NORESULT":
+                    result = noresult
+                if "linted" in args and not args["linted"] and lint and not frozen:
+                    result = noresult
+                if result == noresult:
                     mode = "eval"
                     if "mode" in args:
                         mode = args["mode"]
@@ -334,13 +349,18 @@ def build(lint=False):
                             elif "linted" in args:
                                 del args["linted"]
                             args["exitcode"] = exitcode
-                            if result[-1] != "\n":
-                                result += "%\n"
+                            try:
+                                if str(result)[-1] != "\n":
+                                    result += "%\n"
+                            except:
+                                pass
                     elif mode == "print":
                         result = code
                     else:
                         result = "Invalid mode\n"
-                args["hash"] = hash(language, args, code, result)
+                if not frozen:
+                    args["hash"] = hash(language, args, code, result)
+                args["frozen"] = frozen
                 if "exitcode" in args and not args["exitcode"]:
                     del args["exitcode"]
                 if "result" in args and echo:
@@ -549,5 +569,5 @@ def gcc(code, lineNumPrepend, lint=True):
     os.unlink(t)
     return code, data, data.exit_code
 
-def help(code, lineNumPrepend):
+def help(code, lineNumPrepend, lint=True):
     return code, helptext, 0
