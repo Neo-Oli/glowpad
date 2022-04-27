@@ -334,6 +334,8 @@ def build(lint=False):
                             elif "linted" in args:
                                 del args["linted"]
                             args["exitcode"] = exitcode
+                            if result[-1] != "\n":
+                                result += "%\n"
                     elif mode == "print":
                         result = code
                     else:
