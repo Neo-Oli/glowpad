@@ -528,7 +528,7 @@ def node(code, lineNumPrepend, lint=True):
         newcode = code
     return newcode, str(data), data.exit_code
 
-def gcc(code, lineNumPrependm, lint=True):
+def gcc(code, lineNumPrepend, lint=True):
     t = tempfile.mktemp()
     gccout = sh.gcc(
         "-x",
