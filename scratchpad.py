@@ -453,7 +453,7 @@ def python(code, lineNumPrepend, lint=True):
     if lint:
         try:
             newcode = code
-            # newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
+            newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
             newcode, changed = FormatCode(
                 str(newcode),
                 style_config=os.path.join(sys.prefix, "share/scratchpad-data/.style.yapf"),
