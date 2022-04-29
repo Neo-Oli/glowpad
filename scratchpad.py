@@ -402,6 +402,7 @@ def build(lint=False):
     # print(newout, end="")
 
 def edit():
+    sh.git("pull")
     os.system(
         f"nvim \
                 -c 'nnoremap + :let pos=getpos(\".\")<CR>:%! scratchpad_processor_lint<CR>:call setpos(\".\", pos)<CR>zo<CR>'\
