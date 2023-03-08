@@ -182,6 +182,7 @@ import zlib
 from base64 import a85encode, a85decode, b64encode
 from yapf.yapflib.yapf_api import FormatCode
 
+sh = sh.bake(_return_cmd=True)
 os.chdir(os.path.expanduser("~/notes"))
 parser = argparse.ArgumentParser()
 parser.add_argument("file", help="file to show", nargs="?", default="main")
