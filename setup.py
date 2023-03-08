@@ -40,7 +40,7 @@ setup(
         (
             "share/scratchpad-data",
             ["package.json",
-             "yarn.lock",
+             "pnpm-lock.yaml",
              ".prettierrc.json",
              ".style.yapf"],
         ),
