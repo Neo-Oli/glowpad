@@ -540,6 +540,8 @@ def node(code, lineNumPrepend, lint=True):
         )
     )
     os.environ["NODE_DISABLE_COLORS"] = str(1)
+    os.environ['NODE_PATH'] = os.path.expanduser('~/.config/scratchpad/node_modules')
+
     data = sh.node(
         _in=runcode,
         _err_to_out=True,
