@@ -1,7 +1,7 @@
 #!/bin/python
 resultTitle = "Result:"
 helptext = """
-Welcome to your new scratchpad!
+Welcome to your new glowpad!
 
 It's basically a normal markdown file except it can run code.
 Example:
@@ -75,7 +75,7 @@ This boolean specifies if the code should run or not. If it is set to `False` th
 
 ###### Getting the output of a previous code block:
 
-You can get the output of a previous (higher) block by reading out the variable scratchpad["<NAME>"].
+You can get the output of a previous (higher) block by reading out the variable glowpad["<NAME>"].
 
 See also: depends
 
@@ -87,7 +87,7 @@ Example:
 
     ```python
     import os
-    print(scratchpad["firstBlock"])
+    print(glowpad["firstBlock"])
     ```
 Will turn into:
 
@@ -104,7 +104,7 @@ Will turn into:
     #run:{{"name":2,"hash":"1202068730"}}
     import os
 
-    print(scratchpad["firstBlock"])
+    print(glowpad["firstBlock"])
     ```
     ```
     {resultTitle}
@@ -191,8 +191,8 @@ options = parser.parse_args()
 segmentor = "```"
 noresult = "NO RESULT\n"
 results = {}
-scratchpad = {}
-configpath = os.path.expanduser("~/.config/scratchpad/")
+glowpad = {}
+configpath = os.path.expanduser("~/.config/glowpad/")
 
 
 def hash(language, args, code, result):
@@ -375,7 +375,7 @@ def build(lint=False):
                                (args["result_format"] if "result_format"
                                 in args else "") + resultString + segmentor)
                 results[args["name"]] = args["hash"]
-                scratchpad[args["name"]] = resultString
+                glowpad[args["name"]] = resultString
             else:
                 output += "\n" + segmentor + val + "\n" + segmentor
     print(output, end="")
@@ -386,7 +386,7 @@ def build(lint=False):
     # "--stdin-filepath=foo.md",
     # _in=out,
     # _err="/dev/null",
-    # _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+    # _cwd=os.path.join(sys.prefix, "share/glowpad-data"),
     # )
     # except:
     # newout = out
@@ -405,8 +405,8 @@ def edit():
         star = ""
 
     os.system(f'{editor} \
-                -c \'nnoremap + :let pos=getpos(".")<CR>:%! scratchpad_processor_lint<CR>:call setpos(".", pos)<CR>zo<CR>\'\
-                -c \'nnoremap ° :let pos=getpos(".")<CR>:%! scratchpad_processor<CR>:call setpos(".", pos)<CR>zo<CR>\'\
+                -c \'nnoremap + :let pos=getpos(".")<CR>:%! glowpad_processor_lint<CR>:call setpos(".", pos)<CR>zo<CR>\'\
+                -c \'nnoremap ° :let pos=getpos(".")<CR>:%! glowpad_processor<CR>:call setpos(".", pos)<CR>zo<CR>\'\
                 {options.file}{star}')
     sh.git("add", "--all")
     st = datetime.datetime.now()
@@ -431,14 +431,14 @@ def php(code, lineNumPrepend, lint=True):
                 "--stdin-filepath=foo.php",
                 _in=code,
                 _err="/dev/null",
-                _cwd=os.path.join(sys.prefix, "share/scratchpad-data"),
+                _cwd=os.path.join(sys.prefix, "share/glowpad-data"),
             )
         except:
             newcode = code
     else:
         newcode = code
-    runcode = '<?php $scratchpad=json_decode(base64_decode("{}"), true);{}'.format(
-        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+    runcode = '<?php $glowpad=json_decode(base64_decode("{}"), true);{}'.format(
+        b64encode(json.dumps(glowpad).encode("UTF-8")).decode(),
         prependLineNumbers("?>{}".format(newcode), lineNumPrepend),
     )
     data = sh.php(
@@ -462,8 +462,8 @@ def python(code, lineNumPrepend, lint=True):
             newcode = code
     else:
         newcode = code
-    runcode = "scratchpad=__import__('json').loads(__import__('base64').b64decode({}))\n{}".format(
-        b64encode(json.dumps(scratchpad).encode("UTF-8")),
+    runcode = "glowpad=__import__('json').loads(__import__('base64').b64decode({}))\n{}".format(
+        b64encode(json.dumps(glowpad).encode("UTF-8")),
         prependLineNumbers(newcode, lineNumPrepend),
     )
     data = sh.python(
@@ -500,8 +500,8 @@ def bash(code, lineNumPrepend, lint=True):
     else:
         newcode = code
 
-    runcode = 'declare -A "$(echo "{}" | base64 -d |jq  \'to_entries | map("[\(.key)]=\(.value|@sh)") | reduce .[] as $item ("scratchpad=("; . + ($item) + " ") + ")"\' -r)"\n{}'.format(
-        b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+    runcode = 'declare -A "$(echo "{}" | base64 -d |jq  \'to_entries | map("[\(.key)]=\(.value|@sh)") | reduce .[] as $item ("glowpad=("; . + ($item) + " ") + ")"\' -r)"\n{}'.format(
+        b64encode(json.dumps(glowpad).encode("UTF-8")).decode(),
         prependLineNumbers(newcode, lineNumPrepend),
     )
     data = sh.bash(
@@ -531,9 +531,9 @@ def node(code, lineNumPrepend, lint=True):
         newcode = code
 
     runcode = (
-        "scratchpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".
+        "glowpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".
         format(
-            b64encode(json.dumps(scratchpad).encode("UTF-8")).decode(),
+            b64encode(json.dumps(glowpad).encode("UTF-8")).decode(),
             prependLineNumbers(newcode, lineNumPrepend),
         ))
     os.environ["NODE_DISABLE_COLORS"] = str(1)

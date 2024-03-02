@@ -1,4 +1,4 @@
 #!/bin/python
-import scratchpad
+import glowpad
 
-scratchpad.build()
+glowpad.build()

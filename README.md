@@ -1,4 +1,4 @@
-# scratchpad
+# glowpad
 
 Someone once explained to me what Jupyter is: "A note taking program that can execute code". Not looking into it any further, I made my own program to do that.
 
@@ -7,8 +7,8 @@ It's basically normal markdown files except it can run code.
 ## Installation
 
 1. Run `pip install .` in this directory.
-2. Copy config-example to `~/.config/scratchpad`
-3. Run `npm install` inside `~/.config/scratchpad`.
+2. Copy config-example to `~/.config/glowpad`
+3. Run `npm install` inside `~/.config/glowpad`.
     * This step is only required if you intend to run JavaScript.
 4. Create a folder called `~/notes`.
 5. Run `git init` in `~/notes`. 
@@ -87,7 +87,7 @@ This boolean specifies if the code should run or not. If it is set to `False` th
 
 ####### Getting the output of a previous code block:
 
-You can get the output of a previous (higher) block by reading out the variable scratchpad["<NAME>"].
+You can get the output of a previous (higher) block by reading out the variable glowpad["<NAME>"].
 
 See also: depends
 
@@ -99,7 +99,7 @@ Example:
 
     ```python
     import os
-    print(scratchpad["firstBlock"])
+    print(glowpad["firstBlock"])
     ```
 Will turn into:
 
@@ -116,7 +116,7 @@ Will turn into:
     #run:{{"name":2,"hash":"1202068730"}}
     import os
 
-    print(scratchpad["firstBlock"])
+    print(glowpad["firstBlock"])
     ```
     ```
     {resultTitle}
@@ -184,7 +184,7 @@ If you need additional libraries you can install them.
 
 ### Javascript
 
-Go to `~/.config/scratchpad` and run `npm add <your library>`,
+Go to `~/.config/glowpad` and run `npm add <your library>`,
 
 ### Python
 
