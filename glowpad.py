@@ -395,7 +395,10 @@ def build(lint=False):
 
 
 def edit():
-    sh.git("pull")
+    try:
+        sh.git("pull")
+    except sh.ErrorReturnCode_1:
+        pass
     editor = "vim"
     if os.environ["EDITOR"] == "nvim":
         editor = "nvim"
@@ -408,13 +411,15 @@ def edit():
                 -c \'nnoremap + :let pos=getpos(".")<CR>:%! glowpad_processor_lint<CR>:call setpos(".", pos)<CR>zo<CR>\'\
                 -c \'nnoremap ° :let pos=getpos(".")<CR>:%! glowpad_processor<CR>:call setpos(".", pos)<CR>zo<CR>\'\
                 {options.file}{star}')
-    sh.git("add", "--all")
-    st = datetime.datetime.now()
     try:
+        sh.git("add", "--all")
+        st = datetime.datetime.now()
         sh.git("commit", "-m", "Update on {}".format(st))
-    except sh.ErrorReturnCode:
+        sh.git("push")
+    except sh.ErrorReturnCode_1:
         pass
-    sh.git("push")
+    except sh.ErrorReturnCode_128:
+        pass
 
 
 def prependLineNumbers(code, lineNumPrepend):
