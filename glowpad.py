@@ -260,6 +260,7 @@ def build(lint=False):
             except IndexError:
                 language = ""
                 firstline = ""
+            language = language.strip()
             bang = firstline.split(":")[0]
             if language and bang in ["#run", "# run"]:
                 code = "\n".join(parts) + "\n"
@@ -535,12 +536,10 @@ def node(code, lineNumPrepend, lint=True):
     else:
         newcode = code
 
-    runcode = (
-        "glowpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".
-        format(
-            b64encode(json.dumps(glowpad).encode("UTF-8")).decode(),
-            prependLineNumbers(newcode, lineNumPrepend),
-        ))
+    runcode = "glowpad=JSON.parse(Buffer.from(\"{}\",'base64').toString());\n{}".format(
+        b64encode(json.dumps(glowpad).encode("UTF-8")).decode(),
+        prependLineNumbers(newcode, lineNumPrepend),
+    )
     os.environ["NODE_DISABLE_COLORS"] = str(1)
     os.environ["NODE_PATH"] = os.path.join(configpath, "node_modules")
 
