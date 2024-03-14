@@ -460,10 +460,12 @@ def python(code, lineNumPrepend, lint=True):
         try:
             newcode = code
             newcode = sh.black("-", "-q", _in=code, _err="/dev/null")
-            newcode, changed = FormatCode(
-                str(newcode),
-                style_config=os.path.join(configpath, ".style.yapf"),
-            )
+            style_path = os.path.join(configpath, ".style.yapf")
+            if os.path.isfile(style_path):
+                newcode, changed = FormatCode(
+                    str(newcode),
+                    style_config=style_path,
+                )
         except:
             newcode = code
     else:
