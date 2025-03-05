@@ -519,7 +519,10 @@ def bash(code, lineNumPrepend, lint=True):
     )
     if data.exit_code:
         newcode = code
-    return newcode, str(data), data.exit_code
+
+    stringData = data.stdout.decode('utf-8', errors='replace')  # Replace invalid bytes
+
+    return newcode, stringData, data.exit_code
 
 
 def node(code, lineNumPrepend, lint=True):
